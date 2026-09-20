@@ -8,26 +8,200 @@
 #
 schema_version: 1
 project_id: "noghre-shop"
-updated_at: 2026-01-01      # replace with today's date
+updated_at: 2026-09-20
 
 requirements:
-  - id: FR-AUTH-1
-    title: <name>
-    type: functional        # functional | non_functional
-    priority: must          # must | should | could | wont
-    status: proposed        # proposed | approved | in_progress | implemented | verified | deferred | retired
-    owner_module: null      # MODULE-ID once decomposition assigns it
-    source: docs/project/requirements.md#fr-auth-1--name
-    ux_refs: []             # ["UX-004"]
-    acceptance_criteria:
-      - AC-FR-AUTH-1.1
-    notes: ""
-
-  - id: NFR-PERF-1
-    title: <name>
-    type: non_functional
-    priority: should
-    status: proposed
+  - id: FR-CAT-1
+    title: Category browsing
+    type: functional
+    priority: must
+    status: approved
     owner_module: null
-    source: docs/project/requirements.md#3-non-functional-requirements
-    verification: ""
+    source: docs/project/requirements.md#fr-cat-1--category-browsing-decision
+    ux_refs: []
+    acceptance_criteria:
+      - AC-FR-CAT-1.1
+      - AC-FR-CAT-1.2
+    notes: "starter taxonomy, owner-editable (DEC-023)"
+
+  - id: FR-CAT-2
+    title: Search and filters
+    type: functional
+    priority: must
+    status: approved
+    owner_module: null
+    source: docs/project/requirements.md#fr-cat-2--search-and-filters-decision
+    ux_refs: []
+    acceptance_criteria:
+      - AC-FR-CAT-2.1
+      - AC-FR-CAT-2.2
+      - AC-FR-CAT-2.3
+    notes: "price filter operates on computed prices (BR-4)"
+
+  - id: FR-PROD-1
+    title: Product page with multi-photo gallery
+    type: functional
+    priority: must
+    status: approved
+    owner_module: null
+    source: docs/project/requirements.md#fr-prod-1--product-page-with-multi-photo-gallery-decision
+    ux_refs: []
+    acceptance_criteria:
+      - AC-FR-PROD-1.1
+      - AC-FR-PROD-1.2
+      - AC-FR-PROD-1.3
+    notes: "price shown with rate date (DEC-016/DEC-019)"
+
+  - id: FR-RATE-1
+    title: Daily silver rate and price computation
+    type: functional
+    priority: must
+    status: approved
+    owner_module: null
+    source: docs/project/requirements.md#fr-rate-1--daily-silver-rate-and-price-computation-decision
+    ux_refs: []
+    acceptance_criteria:
+      - AC-FR-RATE-1.1
+      - AC-FR-RATE-1.2
+      - AC-FR-RATE-1.3
+    notes: "manual entry v1, automation-ready (DEC-019); auditable history (BR-4)"
+
+  - id: FR-CART-1
+    title: Shopping cart
+    type: functional
+    priority: must
+    status: approved
+    owner_module: null
+    source: docs/project/requirements.md#fr-cart-1--shopping-cart-decision
+    ux_refs: []
+    acceptance_criteria:
+      - AC-FR-CART-1.1
+      - AC-FR-CART-1.2
+      - AC-FR-CART-1.3
+    notes: "guests and accounts; out-of-stock flagged at cart view"
+
+  - id: FR-CHK-1
+    title: Checkout with stock reservation
+    type: functional
+    priority: must
+    status: approved
+    owner_module: null
+    source: docs/project/requirements.md#fr-chk-1--checkout-with-stock-reservation-decision
+    ux_refs: []
+    acceptance_criteria:
+      - AC-FR-CHK-1.1
+      - AC-FR-CHK-1.2
+      - AC-FR-CHK-1.3
+      - AC-FR-CHK-1.4
+    notes: "optional email (DEC-017); reservation at start (DEC-013); retry on failure (DEC-014)"
+
+  - id: FR-PAY-1
+    title: Online payment via domestic gateway
+    type: functional
+    priority: must
+    status: approved
+    owner_module: null
+    source: docs/project/requirements.md#fr-pay-1--online-payment-via-domestic-gateway-decision
+    ux_refs: []
+    acceptance_criteria:
+      - AC-FR-PAY-1.1
+      - AC-FR-PAY-1.2
+      - AC-FR-PAY-1.3
+    notes: "BLOCKED by OQ-001; price locked at payment (DEC-020); no card data (NFR-SEC-1)"
+
+  - id: FR-ORD-1
+    title: Order lifecycle and tracking
+    type: functional
+    priority: must
+    status: approved
+    owner_module: null
+    source: docs/project/requirements.md#fr-ord-1--order-lifecycle-and-tracking-decision
+    ux_refs: []
+    acceptance_criteria:
+      - AC-FR-ORD-1.1
+      - AC-FR-ORD-1.2
+      - AC-FR-ORD-1.3
+    notes: "Paid→Shipped→Delivered forward-only (DEC-010); guest code+phone lookup (DEC-021)"
+
+  - id: FR-NOT-1
+    title: Email confirmations
+    type: functional
+    priority: must
+    status: approved
+    owner_module: null
+    source: docs/project/requirements.md#fr-not-1--email-confirmations-decision
+    ux_refs: []
+    acceptance_criteria:
+      - AC-FR-NOT-1.1
+      - AC-FR-NOT-1.2
+      - AC-FR-NOT-1.3
+      - AC-FR-NOT-1.4
+    notes: "only when email provided (DEC-017); never load-bearing"
+
+  - id: FR-ADM-1
+    title: Catalog admin
+    type: functional
+    priority: must
+    status: approved
+    owner_module: null
+    source: docs/project/requirements.md#fr-adm-1--catalog-admin-decision
+    ux_refs: []
+    acceptance_criteria:
+      - AC-FR-ADM-1.1
+      - AC-FR-ADM-1.2
+      - AC-FR-ADM-1.3
+    notes: "products, multi-photo, weight/fee/stone, stock toggle (DEC-011/022/029)"
+
+  - id: FR-ADM-2
+    title: Order admin and sales overview
+    type: functional
+    priority: must
+    status: approved
+    owner_module: null
+    source: docs/project/requirements.md#fr-adm-2--order-admin-and-sales-overview-decision
+    ux_refs: []
+    acceptance_criteria:
+      - AC-FR-ADM-2.1
+      - AC-FR-ADM-2.2
+    notes: "order view + status advancement + basic counts/totals (DEC-011)"
+
+  - id: FR-PROMO-1
+    title: Promo codes
+    type: functional
+    priority: must
+    status: approved
+    owner_module: null
+    source: docs/project/requirements.md#fr-promo-1--promo-codes-decision
+    ux_refs: []
+    acceptance_criteria:
+      - AC-FR-PROMO-1.1
+      - AC-FR-PROMO-1.2
+      - AC-FR-PROMO-1.3
+    notes: "% off + expiry + usage limit (DEC-024); counts paid orders only"
+
+  - id: FR-ACC-1
+    title: Optional customer accounts
+    type: functional
+    priority: should
+    status: approved
+    owner_module: null
+    source: docs/project/requirements.md#fr-acc-1--optional-customer-accounts-decision
+    ux_refs: []
+    acceptance_criteria:
+      - AC-FR-ACC-1.1
+      - AC-FR-ACC-1.2
+      - AC-FR-ACC-1.3
+    notes: "never required to buy (DEC-005); deletable (NFR-PRIV-1)"
+
+  - id: FR-PAGE-1
+    title: Policy and contact pages
+    type: functional
+    priority: must
+    status: approved
+    owner_module: null
+    source: docs/project/requirements.md#fr-page-1--policy-and-contact-pages-decision
+    ux_refs: []
+    acceptance_criteria:
+      - AC-FR-PAGE-1.1
+      - AC-FR-PAGE-1.2
+    notes: "shipping, returns/refund, contact — owner-editable (DEC-026)"

@@ -16,7 +16,8 @@
 
 | ID | Risk | Category | Likelihood | Impact | Score | Mitigation | Trigger / early warning | Owner | Status |
 |---|---|---|---|---|---|---|---|---|---|
-| RISK-001 | Example: agent edits a shared file owned by another module | delivery | 3 | 3 | 9 | shared zones with single owners + `tp.py pr-check` | CI rejects the PR | orchestrator | open |
+| RISK-001 | Domestic payment gateway cannot be obtained/approved in time (owner has not applied yet) | product | 3 | 5 | 15 | owner applies NOW (OQ-001/ASM-001); architecture keeps the payment provider behind one integration boundary | no application filed by end of discovery; no account decision before decomposition gate | human | open |
+| RISK-002 | Daily silver rate unavailable or wrong (DEC-016 makes it a hard dependency of every price) | product | 2 | 4 | 8 | manual owner entry in admin as v1 default (OQ-007 `[REC]`); rate changes are auditable; staleness warning in admin | a trading day starts with no rate entered and prices cannot be displayed | human + discovery | open |
 
 Category: `product` · `technical` · `delivery` · `security` · `compliance` · `cost` · `quality`.
 Status: `open` · `mitigating` · `accepted` · `closed` · `materialised`.
@@ -36,11 +37,29 @@ Status: `open` · `mitigating` · `accepted` · `closed` · `materialised`.
 
 ## Detail
 
-### RISK-001 — <risk title>
-- **Description:**
-- **Cause:**
-- **Impact:** <!-- on product, users, schedule, cost, security -->
-- **Likelihood / impact:** 3 / 3
-- **Mitigation:**
-- **Contingency:** <!-- what we do if it happens -->
-- **Owner:** · **Status:** open · **Review date:** —
+### RISK-001 — Payment gateway not obtainable in time
+- **Description:** DEC-003/DEC-015 make online payment the only purchase path, but the
+  owner has not yet applied for any domestic payment gateway (OQ-001, ASM-001).
+- **Cause:** administrative lead time for merchant onboarding is outside the project's
+  control and has not started.
+- **Impact:** launch blocked or delayed; worst case, v1 degrades to manual payment — a
+  major scope change.
+- **Likelihood / impact:** 3 / 5 → **score 15** (escalation rule applies).
+- **Mitigation:** owner files the application immediately (before architecture is final);
+  Architecture Agent isolates the payment provider behind a single integration boundary so
+  a late gateway choice does not ripple.
+- **Contingency:** if approval drags, human decides via change request between waiting,
+  manual-payment launch, or a different provider.
+- **Owner:** human · **Status:** open · **Review date:** at every discovery round.
+
+### RISK-002 — Daily silver rate missing or wrong
+- **Description:** DEC-016 computes every product price from a daily silver rate; a missing
+  or wrong rate breaks pricing store-wide.
+- **Cause:** manual daily entry can be forgotten; an automated feed (if chosen later) can
+  fail or disagree with the market.
+- **Impact:** catalog prices cannot be displayed or are wrong → checkout disputes, refunds.
+- **Likelihood / impact:** 2 / 4 → score 8.
+- **Mitigation:** `[REC]` manual admin entry in v1 (OQ-007); admin shows a staleness warning;
+  rate history is auditable.
+- **Contingency:** last-known rate with explicit "rate of DATE" display until corrected.
+- **Owner:** human + discovery · **Status:** open · **Review date:** at decomposition.

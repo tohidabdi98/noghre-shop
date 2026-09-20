@@ -12,13 +12,13 @@ default_branch: "main"
 initialised: true
 profile: "fullstack"
 stage: "discovery"
-spec_status: "draft"
+spec_status: "approved"
 version: "0.0.0"
 milestone: "M0-bootstrap"
 created_at: "2026-09-20"
 updated_at: "2026-09-20"
 gates:
-  requirements_approved: false
+  requirements_approved: true
   ux_approved: false
   architecture_approved: false
   decomposition_approved: false
