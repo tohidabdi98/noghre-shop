@@ -4,29 +4,30 @@
 # The LAST matching pattern wins. Agents are not GitHub users, so ownership here is expressed with
 # human/team handles; module ownership for agents is enforced by `python scripts/tp.py pr-check`.
 #
-# Replace `@your-handle` with real accounts, then delete these instructions.
+# Replace `@tohidabdi98` with real accounts, then delete these instructions.
+# Done 2026-09-20: all rules point at the project owner, @tohidabdi98.
 
 # Default: everything needs the project owner's review.
-*                                   @your-handle
+*                                   @tohidabdi98
 
 # --- Process integrity: only the human changes the rules -------------------------------
-/state/**                           @your-handle
-/modules/**                         @your-handle
-/docs/project/**                    @your-handle
-/docs/agents/**                     @your-handle
-/agents/**                          @your-handle
-/docs/workflows/**                  @your-handle
-/AGENTS.md                          @your-handle
-/HOW_TO_USE.ipynb                   @your-handle
-/.github/**                         @your-handle
+/state/**                           @tohidabdi98
+/modules/**                         @tohidabdi98
+/docs/project/**                    @tohidabdi98
+/docs/agents/**                     @tohidabdi98
+/agents/**                          @tohidabdi98
+/docs/workflows/**                  @tohidabdi98
+/AGENTS.md                          @tohidabdi98
+/HOW_TO_USE.ipynb                   @tohidabdi98
+/.github/**                         @tohidabdi98
 
 # --- Framework plumbing: reviewed by whoever owns the toolchain --------------------------
-/scripts/**                         @your-handle
+/scripts/**                         @tohidabdi98
 
 # --- Module source code: assign real reviewers per module as decomposition lands ---------
 # /src/auth/**                      @backend-reviewer
 # /src/dashboard/**                 @frontend-reviewer
 
 # --- Generated evidence: review is optional, but keep an eye on reports -------------------
-/reports/**                         @your-handle
-/handoffs/**                        @your-handle
+/reports/**                         @tohidabdi98
+/handoffs/**                        @tohidabdi98
