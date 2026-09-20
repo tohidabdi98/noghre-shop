@@ -1,0 +1,134 @@
+# state/modules.yaml — Example SaaS board (mid-flight)
+schema_version: 1
+updated_at: "2026-03-12"
+
+modules:
+  - module_id: AUTH-001
+    name: Authentication
+    contract: modules/AUTH-001.md
+    priority: must
+    status: complete
+    assigned_agent: impl-auth-001
+    branch: agent/impl-auth-001/AUTH-001
+    pr: 12
+    validation: passed
+    blocked_reason: null
+    updated_at: "2026-03-09"
+    history:
+      - at: "2026-03-05"
+        from: planned
+        to: ready
+        by: orchestrator
+        reason: "no dependencies; IF-USER-PORT frozen"
+      - at: "2026-03-06"
+        from: ready
+        to: in_progress
+        by: impl-auth-001
+        reason: "work started"
+      - at: "2026-03-09"
+        from: awaiting_review
+        to: validated
+        by: rev-auth-001
+        reason: "all criteria evidenced; UX sign-off attached"
+      - at: "2026-03-09"
+        from: validated
+        to: complete
+        by: human
+        reason: "PR #12 merged"
+
+  - module_id: USER-001
+    name: Users and collaborators
+    contract: modules/USER-001.md
+    priority: must
+    status: complete
+    assigned_agent: impl-user-001
+    branch: agent/impl-user-001/USER-001
+    pr: 15
+    validation: passed
+    blocked_reason: null
+    updated_at: "2026-03-10"
+    history:
+      - at: "2026-03-06"
+        from: planned
+        to: ready
+        by: orchestrator
+        reason: "AUTH-001 complete"
+      - at: "2026-03-10"
+        from: validated
+        to: complete
+        by: human
+        reason: "PR #15 merged"
+
+  - module_id: PROJECT-001
+    name: Project lifecycle
+    contract: modules/PROJECT-001.md
+    priority: must
+    status: validated
+    assigned_agent: impl-project-001
+    branch: agent/impl-project-001/PROJECT-001
+    pr: 18
+    validation: passed
+    blocked_reason: null
+    updated_at: "2026-03-11"
+    history:
+      - at: "2026-03-07"
+        from: planned
+        to: ready
+        by: orchestrator
+        reason: "USER-001 complete; IF-NOTIFY-PORT frozen"
+      - at: "2026-03-11"
+        from: awaiting_review
+        to: validated
+        by: rev-project-001
+        reason: "review + testing verdicts passed; awaiting merge"
+
+  - module_id: DASH-001
+    name: Dashboard
+    contract: modules/DASH-001.md
+    priority: must
+    status: changes_requested
+    assigned_agent: impl-dashboard-003
+    branch: agent/impl-dashboard-003/DASH-001
+    pr: 21
+    validation: failed
+    blocked_reason: null
+    updated_at: "2026-03-12"
+    history:
+      - at: "2026-03-09"
+        from: planned
+        to: ready
+        by: orchestrator
+        reason: "USER-001 complete; IF-PROJECT-READ frozen"
+      - at: "2026-03-11"
+        from: in_progress
+        to: failed
+        by: orch-001
+        reason: "impl-dashboard-002 lost context mid-module; handoff issued"
+      - at: "2026-03-11"
+        from: failed
+        to: in_progress
+        by: impl-dashboard-003
+        reason: "continued from handoff"
+      - at: "2026-03-12"
+        from: awaiting_review
+        to: changes_requested
+        by: rev-dash-001
+        reason: "missing state screenshots (B1) and keyboard walkthrough (B2)"
+
+  - module_id: NOTIFY-001
+    name: Notifications
+    contract: modules/NOTIFY-001.md
+    priority: should
+    status: planned
+    assigned_agent: null
+    branch: null
+    pr: null
+    validation: pending
+    blocked_reason: null
+    updated_at: "2026-03-05"
+    history:
+      - at: "2026-03-05"
+        from: null
+        to: planned
+        by: decomposition
+        reason: "contract created; waiting for PROJECT-001 to be complete"

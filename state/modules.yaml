@@ -1,0 +1,33 @@
+# state/modules.yaml — module runtime state (the board)
+#
+# Only STATUS lives here. Ownership, interfaces and acceptance criteria live in
+# modules/<MODULE-ID>.md. Entries are created by `python scripts/tp.py new-module --id ...`.
+#
+# status values (canonical, validated by tp.py):
+#   planned | ready | assigned | in_progress | awaiting_review | changes_requested |
+#   validated | blocked | failed | complete | cancelled
+#
+# validation: pending | passed | failed | partial
+#
+schema_version: 1
+updated_at: 2026-01-01
+
+modules: []
+
+  # - module_id: AUTH-001
+  #   name: Authentication
+  #   contract: modules/AUTH-001.md
+  #   priority: must                 # must | should | could
+  #   status: ready
+  #   assigned_agent: null           # "impl-auth-001"
+  #   branch: null                   # "agent/impl-auth-001/AUTH-001"
+  #   pr: null                       # 42
+  #   validation: pending
+  #   blocked_reason: null
+  #   updated_at: 2026-01-01
+  #   history:
+  #     - at: 2026-01-01
+  #       from: planned
+  #       to: ready
+  #       by: orchestrator
+  #       reason: "dependencies USER-001 validated; interfaces frozen"

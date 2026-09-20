@@ -1,0 +1,47 @@
+# state/dependencies.yaml — Example SaaS
+# from -> to means "from depends on to" (to must be validated|complete first).
+schema_version: 1
+updated_at: "2026-03-12"
+
+edges:
+  - from: USER-001
+    to: AUTH-001
+    type: build
+    interface: "docs/project/architecture.md#6-interfaces"
+    status: frozen
+    notes: "build-order dependency on shared error/result types owned by AUTH-001"
+
+  - from: PROJECT-001
+    to: USER-001
+    type: contract
+    interface: "IF-USER-PORT"
+    status: frozen
+    notes: "reads actors and memberships through the port; never touches user tables"
+
+  - from: DASH-001
+    to: USER-001
+    type: contract
+    interface: "IF-USER-PORT"
+    status: frozen
+    notes: "resolves the current user for greetings and timezone rendering"
+
+  - from: DASH-001
+    to: PROJECT-001
+    type: contract
+    interface: "IF-PROJECT-READ"
+    status: frozen
+    notes: "attention items, project summaries and recent activity read models"
+
+  - from: NOTIFY-001
+    to: PROJECT-001
+    type: runtime
+    interface: "EV-PROJECT-ASSIGNED + IF-PROJECT-READ"
+    status: frozen
+    notes: "subscribes to Project assignment events and reads project names for the digest; one-way, no import"
+
+  - from: NOTIFY-001
+    to: USER-001
+    type: contract
+    interface: "IF-USER-PORT"
+    status: frozen
+    notes: "resolves recipient email, display name and timezone"

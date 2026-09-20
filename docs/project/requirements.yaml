@@ -1,0 +1,33 @@
+# requirements.yaml — requirement index (machine-readable)
+#
+# This file is an INDEX, not a source of truth. Prose lives in docs/project/requirements.md.
+# It exists so scripts and orchestrators can reason about requirements without parsing prose:
+#   * which requirements are approved, deferred or retired
+#   * which module claims to satisfy which requirement (mirrors the module contract)
+# Validate with: python scripts/tp.py validate
+#
+schema_version: 1
+project_id: "noghre-shop"
+updated_at: 2026-01-01      # replace with today's date
+
+requirements:
+  - id: FR-AUTH-1
+    title: <name>
+    type: functional        # functional | non_functional
+    priority: must          # must | should | could | wont
+    status: proposed        # proposed | approved | in_progress | implemented | verified | deferred | retired
+    owner_module: null      # MODULE-ID once decomposition assigns it
+    source: docs/project/requirements.md#fr-auth-1--name
+    ux_refs: []             # ["UX-004"]
+    acceptance_criteria:
+      - AC-FR-AUTH-1.1
+    notes: ""
+
+  - id: NFR-PERF-1
+    title: <name>
+    type: non_functional
+    priority: should
+    status: proposed
+    owner_module: null
+    source: docs/project/requirements.md#3-non-functional-requirements
+    verification: ""

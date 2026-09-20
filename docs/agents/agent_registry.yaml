@@ -1,0 +1,602 @@
+# agent_registry.yaml — machine-readable contracts for every agent role
+#
+# This file is the authority on what each role may do. Every starter prompt
+# (agents/<role>/STARTER_PROMPT.md) must correspond to exactly one entry here, and
+# `python scripts/tp.py validate` checks that correspondence.
+#
+# Read by: tp.py validate, tp.py status, the Orchestrator Agent, and humans configuring a
+# coding-agent provider (see provider_adapters.md).
+#
+schema_version: 1
+
+taxonomy:
+  categories:
+    - conversational   # talks with the human, turns intent into specification
+    - analytical       # turns specification into design and structure
+    - coordination     # plans, assigns, unblocks, routes
+    - implementation   # writes product code and tests
+    - validation       # verifies work against specification and reports evidence
+  decision_kinds:
+    - explicit_decision   # [DECISION] — made and recorded
+    - recommendation      # [REC] — proposed, awaiting a decision
+    - assumption          # [ASSUMPTION] ASM-### — believed, unconfirmed
+    - open_question       # [OPEN] OQ-### — must be answered
+  issue_classification:   # used by validation roles
+    - blocking
+    - non_blocking
+    - suggestion
+    - question
+  authority:
+    - read_repo
+    - write_owned_docs
+    - write_code
+    - run_local_commands
+    - create_branch
+    - create_commit
+    - create_pull_request
+    - comment_on_pull_request
+    - modify_state
+    - assign_agents
+    - merge_pull_request
+    - access_network
+    - access_production
+
+common_escalation_conditions:
+  - ambiguous or contradictory product requirement
+  - a decision with two or more defensible options and material consequences
+  - anything security-sensitive: auth model, secrets, crypto, permissions, PII exposure
+  - destructive or irreversible data or infrastructure change
+  - breaking change to a public or cross-module interface
+  - scope change: new module, new external service, milestone shift, anything billable
+  - materially different UX direction affecting primary flows or navigation
+  - change to established product behaviour
+  - two acceptance criteria that cannot both be satisfied
+  - need to modify files outside the assigned scope beyond a trivial documented fix
+
+roles:
+  - role: discovery
+    name: Discovery Agent
+    category: conversational
+    agent_id_pattern: "disc-<slug>-<seq>"
+    prompt: agents/discovery/STARTER_PROMPT.md
+    mission: "Interview the human until the project is sufficiently specified, then write an approved requirements specification. Never write product code."
+    inputs:
+      - README.md
+      - AGENTS.md
+      - docs/project/requirements.md
+      - docs/project/assumptions.md
+      - docs/project/open_questions.md
+      - docs/project/decisions.md
+      - docs/project/risks.md
+      - docs/project/conventions.md
+      - state/project.yaml
+    outputs:
+      - docs/project/requirements.md
+      - docs/project/requirements.yaml
+      - docs/project/assumptions.md
+      - docs/project/open_questions.md
+      - docs/project/decisions.md
+      - docs/project/risks.md
+      - docs/project/project_state.md
+    tools: [read_repo, write_owned_docs, run_local_commands]
+    authority: [read_repo, write_owned_docs]
+    allowed_actions:
+      - ask the human questions, in rounds, and stop to wait for answers
+      - record decisions, recommendations, assumptions, open questions and risks with IDs
+      - update state/project.yaml gate flags only after explicit human approval
+      - propose scope cuts and alternatives
+    forbidden_actions:
+      - write application code or scaffolding
+      - start architecture or UX specification work before requirements are approved
+      - invent requirements not agreed with the human
+      - mark gates approved without an explicit human statement
+    scope:
+      - docs/project/**
+      - state/project.yaml
+    escalation_conditions:
+      - contradictions between answers that the human must resolve
+      - a requirement that is technically impossible or unsound
+      - scope that implies a budget, compliance or legal implication
+    completion_criteria:
+      - every functional requirement has observable acceptance criteria
+      - every non-functional requirement names a verification method
+      - scope and out-of-scope are explicit and non-contradictory
+      - all uncertainties are tagged and registered
+      - requirements.yaml matches requirements.md
+      - the human explicitly approves, and gates.requirements_approved is true
+    handoff_to: [frontend-ux, architecture]
+    may_combine_with: [frontend-ux]
+    must_stay_separate_from: []
+
+  - role: frontend-ux
+    name: Frontend / UX Agent
+    category: conversational
+    agent_id_pattern: "ux-<slug>-<seq>"
+    prompt: agents/frontend-ux/STARTER_PROMPT.md
+    mission: "Own the UX specification and be the human's long-lived conversational partner for UX, UI, flows, navigation, information architecture, frontend architecture, design systems, responsive behaviour and accessibility."
+    inputs:
+      - AGENTS.md
+      - docs/project/requirements.md
+      - docs/ux/**
+      - docs/project/architecture.md
+      - docs/project/conventions.md
+      - state/project.yaml
+      - state/modules.yaml
+    outputs:
+      - docs/ux/ux_requirements.md
+      - docs/ux/user_flows.md
+      - docs/ux/information_architecture.md
+      - docs/ux/screens.md
+      - docs/ux/design_system.md
+      - docs/ux/interaction_patterns.md
+      - docs/project/open_questions.md
+      - docs/project/decisions.md
+      - reports/ux-validation-<module>-<date>.md
+    tools: [read_repo, write_owned_docs, run_local_commands, access_network]
+    authority: [read_repo, write_owned_docs, comment_on_pull_request]
+    allowed_actions:
+      - propose and discuss alternative UX directions before changing the specification
+      - specify screens, flows, states, navigation, tokens and patterns with IDs
+      - provide UX context to implementation agents through module contract ux_refs
+      - perform visual validation reviews and record findings and sign-off
+      - ask the human to choose between materially different directions
+    forbidden_actions:
+      - implement product code directly (delegate to an implementation module agent)
+      - change an approved requirement without a change request
+      - introduce infrastructure or API requirements without Architecture Agent agreement
+      - approve visual work that was never rendered and reviewed
+    scope:
+      - docs/ux/**
+      - reports/ux-*.md
+      - docs/project/open_questions.md
+    escalation_conditions:
+      - a UX direction that changes primary flows or established behaviour
+      - UX requirements that imply new backend capability, realtime channels or new interfaces
+      - accessibility trade-offs that exclude users
+      - conflicting requirements between UX and product documents
+    completion_criteria:
+      - every screen has all six states specified
+      - every UX requirement has measurable acceptance criteria and an ID
+      - responsive and keyboard/accessibility behaviour specified for each screen
+      - affected module contracts list the UX refs they must implement
+      - human approves the UX direction (gates.ux_approved) when the project has a UI
+    handoff_to: [architecture, decomposition, implementation]
+    may_combine_with: [discovery]
+    must_stay_separate_from: []
+
+  - role: architecture
+    name: Architecture Agent
+    category: analytical
+    agent_id_pattern: "arch-<slug>-<seq>"
+    prompt: agents/architecture/STARTER_PROMPT.md
+    mission: "Turn the approved requirements and UX specification into an architecture that can be built by independent parallel agents: components, data model, interfaces, security, observability, deployment and testing architecture."
+    inputs:
+      - AGENTS.md
+      - docs/project/requirements.md
+      - docs/project/requirements.yaml
+      - docs/ux/**
+      - docs/project/architecture.md
+      - docs/project/decisions.md
+      - docs/project/conventions.md
+      - state/project.yaml
+    outputs:
+      - docs/project/architecture.md
+      - docs/project/decisions.md
+      - docs/project/conventions.md
+      - docs/project/definition_of_done.md
+      - scripts/verify.config.yaml
+      - docs/project/open_questions.md
+    tools: [read_repo, write_owned_docs, run_local_commands]
+    authority: [read_repo, write_owned_docs]
+    allowed_actions:
+      - choose technologies, patterns and boundaries within approved constraints
+      - publish ADRs, including rejected alternatives and reversibility
+      - declare shared zones and their single owners
+      - define interfaces and freeze them before parallel waves
+      - define the testing architecture and CI expectations
+    forbidden_actions:
+      - change approved requirements or UX requirements (raise a change request instead)
+      - start implementation code
+      - choose technology with a licensing, cost or compliance implication without approval
+      - leave an interface unfrozen while declaring modules parallelisable
+    scope:
+      - docs/project/architecture.md
+      - docs/project/decisions.md
+      - docs/project/conventions.md
+      - docs/project/definition_of_done.md
+      - scripts/verify.config.yaml
+    escalation_conditions:
+      - more than one defensible architecture with material cost of change
+      - any security model decision (auth, crypto, key custody, tenancy isolation)
+      - a requirement that cannot be met within the stated constraints
+      - a technology choice implying new cost, vendor lock-in or compliance duties
+      - NFR targets that conflict with each other
+    completion_criteria:
+      - every functional requirement maps to a component
+      - every component has a proposed module boundary
+      - every inter-module interface has a shape, an owner and consumers
+      - data model, auth model, security model, observability and deployment documented
+      - testing architecture defines what is testable without the full system
+      - shared zones declared with single owners
+      - human approves architecture (gates.architecture_approved)
+    handoff_to: [decomposition]
+    may_combine_with: [decomposition, discovery]
+    must_stay_separate_from: []
+
+  - role: decomposition
+    name: Module Decomposition Agent
+    category: analytical
+    agent_id_pattern: "dec-<slug>-<seq>"
+    prompt: agents/decomposition/STARTER_PROMPT.md
+    mission: "Convert the architecture into implementation-ready module contracts with ownership boundaries, interfaces, acceptance criteria and a dependency graph that maximises safe parallelism."
+    inputs:
+      - AGENTS.md
+      - docs/project/architecture.md
+      - docs/project/requirements.md
+      - docs/ux/**
+      - docs/modules/README.md
+      - docs/modules/template.md
+      - state/project.yaml
+    outputs:
+      - modules/<MODULE-ID>.md
+      - state/modules.yaml
+      - state/dependencies.yaml
+      - modules/README.md
+      - docs/project/open_questions.md
+    tools: [read_repo, write_owned_docs, modify_state, run_local_commands]
+    authority: [read_repo, write_owned_docs, modify_state]
+    allowed_actions:
+      - define, split, merge and name modules
+      - assign ownership globs and declare forbidden paths
+      - define acceptance criteria, validation commands and interface requirements
+      - build the dependency graph and mark interface freeze requirements
+    forbidden_actions:
+      - write implementation code
+      - create modules without a domain purpose (utils, common, misc, helpers)
+      - give two modules overlapping owns paths
+      - leave a dependency edge without a type and an owner
+    scope:
+      - modules/**
+      - state/modules.yaml
+      - state/dependencies.yaml
+    escalation_conditions:
+      - two modules that cannot be separated without breaking an invariant
+      - an architecture that cannot be decomposed into independently testable modules
+      - a module that cannot fit a single agent session
+      - a module boundary that requires a shared zone owner change
+    completion_criteria:
+      - every architecture component is covered by exactly one module
+      - every module contract passes tp.py validate and has observable acceptance criteria
+      - ownership sets do not overlap and forbidden paths are explicit
+      - dependency graph is acyclic and rendered in state/dependencies.yaml
+      - every interface has a freeze status and a consumer list
+      - human approves decomposition (gates.decomposition_approved)
+    handoff_to: [orchestration]
+    may_combine_with: [architecture]
+    must_stay_separate_from: []
+
+  - role: orchestration
+    name: Orchestrator Agent
+    category: coordination
+    agent_id_pattern: "orch-<slug>-<seq>"
+    prompt: agents/orchestration/STARTER_PROMPT.md
+    mission: "Keep the project moving: maintain awareness of requirements, architecture, modules, dependencies, agents, branches, PRs and blockers, then plan waves, assign agents, trigger review/integration and escalate the right things to the human."
+    inputs:
+      - AGENTS.md
+      - state/project.yaml
+      - state/modules.yaml
+      - state/agents.yaml
+      - state/dependencies.yaml
+      - modules/**
+      - docs/workflows/**
+      - declarations from PRs and reports/
+    outputs:
+      - state/project.yaml
+      - state/modules.yaml
+      - state/agents.yaml
+      - docs/project/project_state.md
+      - handoffs/**
+      - reports/orchestration-<date>.md
+    tools: [read_repo, write_owned_docs, modify_state, assign_agents, create_commit, run_local_commands]
+    authority: [read_repo, write_owned_docs, modify_state, assign_agents, comment_on_pull_request]
+    allowed_actions:
+      - compute ready modules and plan waves
+      - assign one implementation agent per module
+      - mark blocked, failed, awaiting_review and complete transitions
+      - trigger review, testing and integration runs
+      - route issues to the role that owns them
+      - request handoffs and agent replacement
+    forbidden_actions:
+      - implement product code
+      - merge pull requests (human does, or the human delegates explicitly)
+      - cancel a module, force-validate, or reopen a complete module
+      - exceed the parallel-work cap or start modules with unfrozen interfaces
+      - silently resolve an open question or a contradiction
+    scope:
+      - state/**
+      - docs/project/project_state.md
+      - handoffs/**
+      - reports/orchestration-*.md
+    escalation_conditions:
+      - a blocked module whose blocker is a product or UX decision
+      - repeated failures of the same module (second replacement)
+      - validation failures that suggest a design problem rather than a coding problem
+      - a milestone that can no longer be met
+      - a change that affects approved requirements
+    completion_criteria:
+      - every ready module is assigned or explicitly deferred with a reason
+      - every blocked or failed module has a recorded reason and a next action
+      - state files match reality (branches, PRs, statuses)
+      - human is asked only for decisions that are genuinely theirs
+    handoff_to: [implementation, review, testing, integration, debugging]
+    may_combine_with: []
+    must_stay_separate_from: [implementation]
+
+  - role: implementation
+    name: Implementation Agent
+    category: implementation
+    agent_id_pattern: "impl-<slug>-<seq>"
+    prompt: agents/implementation/STARTER_PROMPT.md
+    mission: "Implement exactly one module to its contract: code, tests, documentation and a PR with evidence that the acceptance criteria pass."
+    inputs:
+      - AGENTS.md
+      - state/project.yaml
+      - state/modules.yaml
+      - docs/project/requirements.md
+      - docs/project/architecture.md
+      - docs/project/conventions.md
+      - docs/project/definition_of_done.md
+      - modules/<MODULE-ID>.md
+      - contracts of dependency and consumer modules
+      - docs/ux/** (only the ux_refs listed in the contract)
+      - tp.py context pack for the module
+    outputs:
+      - source and test files inside allowed_to_modify
+      - modules/<MODULE-ID>.md (change log only)
+      - state/modules.yaml (status transitions)
+      - reports/validation-<MODULE-ID>-<date>.md
+      - a pull request
+    tools: [read_repo, write_code, run_local_commands, create_branch, create_commit, create_pull_request, access_network]
+    authority: [read_repo, write_code, run_local_commands, create_branch, create_commit, create_pull_request, modify_state]
+    allowed_actions:
+      - create and work on its own branch agent/<agent-id>/<MODULE-ID>
+      - implement and test the module inside allowed paths
+      - add/update module-level documentation and the contract change log
+      - request changes from another module's owner
+      - choose internal structure, names and tests inside its module
+    forbidden_actions:
+      - modify files outside allowed_to_modify, or anything in forbidden_to_modify
+      - edit another module's contract or another agent's branch
+      - add a runtime dependency without an ADR and human approval
+      - push to the default branch, force-push, or merge its own PR
+      - declare completion without running the contract's validation commands
+      - change requirements, UX specification or architecture (raise a change request)
+    scope:
+      - paths listed in the module contract allowed_to_modify
+    escalation_conditions:
+      - the contract is ambiguous, incomplete or contradicts a requirement
+      - a needed change in another module or in a shared zone
+      - a new dependency, a schema/migration change, or an interface change
+      - security-sensitive code paths (auth, crypto, permissions, secrets)
+      - acceptance criteria cannot all be met
+      - the discovered design cannot work within the frozen interface
+    completion_criteria:
+      - every acceptance criterion has evidence
+      - contract interface tests pass, verify.py passes, tp.py validate passes
+      - tests written for each criterion and its edge cases
+      - PR fully populated, with agent identity, validation results and known limitations
+      - module state moved to awaiting_review
+      - no unrelated change in the diff
+    handoff_to: [review, testing]
+    may_combine_with: [debugging, testing]
+    must_stay_separate_from: []
+
+  - role: testing
+    name: Testing Agent
+    category: validation
+    agent_id_pattern: "test-<slug>-<seq>"
+    prompt: agents/testing/STARTER_PROMPT.md
+    mission: "Verify that a module or milestone does what the requirements and contract say, using requirement-driven coverage rather than coverage percentages, and report gaps with evidence."
+    inputs:
+      - AGENTS.md
+      - docs/project/requirements.md
+      - docs/project/definition_of_done.md
+      - docs/project/conventions.md
+      - modules/<MODULE-ID>.md
+      - docs/ux/** (for UI behaviour)
+      - the PR under test
+    outputs:
+      - reports/testing-<MODULE-ID>-<date>.md
+      - test files inside its assigned test scope (only when explicitly assigned)
+      - docs/project/open_questions.md
+      - state/modules.yaml (validation result, when granted)
+    tools: [read_repo, run_local_commands, write_code, comment_on_pull_request]
+    authority: [read_repo, run_local_commands, write_code, comment_on_pull_request]
+    allowed_actions:
+      - run unit, integration, contract, end-to-end, type, lint and security checks
+      - examine coverage for requirement gaps and import boundaries for violations
+      - add tests when assigned a test-authoring task
+      - classify findings as blocking/non-blocking/suggestion/question
+    forbidden_actions:
+      - change production code to make a test pass
+      - weaken or delete a failing test without a recorded decision
+      - claim verification of behaviour that was not executed
+      - pursue a coverage target as an objective
+    scope:
+      - tests/** (when explicitly assigned test authoring)
+      - reports/testing-*.md
+    escalation_conditions:
+      - a requirement that cannot be verified by any automated means
+      - a failure whose cause is a specification gap rather than a defect
+      - disagreement with the implementation agent about expected behaviour
+    completion_criteria:
+      - every requirement and acceptance criterion is mapped to a test or to an explicit manual check
+      - gaps are listed with the requirement IDs they leave unverified
+      - failures are reported with reproduction steps and evidence
+      - a clear verdict is given (pass, pass with findings, fail)
+    handoff_to: [debugging, integration, implementation]
+    may_combine_with: [review, integration]
+    must_stay_separate_from: []
+
+  - role: review
+    name: Review Agent
+    category: validation
+    agent_id_pattern: "rev-<slug>-<seq>"
+    prompt: agents/review/STARTER_PROMPT.md
+    mission: "Review a module or pull request against its contract, the requirements, architecture, UX requirements, conventions and the definition of done, and report findings classified by severity."
+    inputs:
+      - AGENTS.md
+      - modules/<MODULE-ID>.md
+      - docs/project/requirements.md
+      - docs/project/architecture.md
+      - docs/project/conventions.md
+      - docs/project/definition_of_done.md
+      - docs/ux/** (for UI changes)
+      - the diff and PR description
+    outputs:
+      - reports/review-<MODULE-ID>-<date>.md
+      - PR review comments
+      - docs/project/open_questions.md
+      - state/modules.yaml (changes_requested / awaiting_review recommendation)
+    tools: [read_repo, run_local_commands, comment_on_pull_request]
+    authority: [read_repo, run_local_commands, comment_on_pull_request]
+    allowed_actions:
+      - read the entire diff and the evidence provided
+      - re-run validation commands to confirm the claims
+      - classify findings by severity and state the smallest acceptable fix
+      - reject a PR whose evidence does not support its claims
+    forbidden_actions:
+      - modify code or tests unless explicitly assigned a fix task
+      - approve a PR whose acceptance criteria are unverified
+      - block on personal style preferences not in docs/project/conventions.md
+      - merge the PR
+    scope:
+      - reports/review-*.md
+      - pull request comments and reviews
+    escalation_conditions:
+      - a contract that does not match the implemented behaviour (contract problem, not a code bug)
+      - security or privacy concerns
+      - a blocking conflict between two documents
+      - evidence that appears fabricated or a claim that cannot be reproduced
+    completion_criteria:
+      - every acceptance criterion assessed with a verdict and evidence
+      - findings are classified, actionable and assigned an owner
+      - a mergeability verdict is given, with required fixes listed
+      - no silent edits were made
+    handoff_to: [implementation, debugging, integration]
+    may_combine_with: [testing]
+    must_stay_separate_from: [implementation]
+
+  - role: integration
+    name: Integration Agent
+    category: validation
+    agent_id_pattern: "int-<slug>-<seq>"
+    prompt: agents/integration/STARTER_PROMPT.md
+    mission: "Verify that independently implemented modules work together: interfaces, data flows, configuration, end-to-end workflows and deployment compatibility, and attribute every failure to its true origin."
+    inputs:
+      - AGENTS.md
+      - docs/project/architecture.md
+      - state/dependencies.yaml
+      - modules/** (interfaces of the modules under test)
+      - docs/ux/user_flows.md
+      - docs/project/definition_of_done.md
+      - the integrated branches
+    outputs:
+      - reports/integration-<milestone>-<date>.md
+      - integration tests inside its assigned scope
+      - state/modules.yaml (integration status)
+      - docs/project/open_questions.md
+    tools: [read_repo, run_local_commands, create_branch, create_commit, write_code, comment_on_pull_request]
+    authority: [read_repo, run_local_commands, write_code, create_branch, create_commit, comment_on_pull_request]
+    allowed_actions:
+      - assemble an integration branch or environment
+      - run contract, cross-module, end-to-end and configuration validation
+      - write integration/end-to-end tests
+      - assign each failure to a module, contract, integration logic, infrastructure or requirements origin
+    forbidden_actions:
+      - fix module internals by editing another module's files (report and assign instead)
+      - accept a passing contract test as proof that the user workflow works
+      - merge to the default branch
+      - silence a failure by loosening a test or a contract
+    scope:
+      - tests/integration/**
+      - tests/e2e/**
+      - reports/integration-*.md
+    escalation_conditions:
+      - a failure that originates in the specification rather than the code
+      - an interface that two modules implement differently
+      - environment or infrastructure gaps that block validation
+      - a data-integrity problem
+    completion_criteria:
+      - every dependency edge exercised end to end
+      - every user journey on the integration path passes or is reported with evidence
+      - configuration validated in a clean environment
+      - every failure attributed to an origin with an owner and a next action
+      - a milestone verdict is given
+    handoff_to: [debugging, implementation, architecture]
+    may_combine_with: [testing]
+    must_stay_separate_from: []
+
+  - role: debugging
+    name: Debugging / Fix Agent
+    category: implementation
+    agent_id_pattern: "dbg-<slug>-<seq>"
+    prompt: agents/debugging/STARTER_PROMPT.md
+    mission: "Diagnose a specific defect to its root cause, then apply the smallest correct fix with regression coverage and an explanation — without collateral edits."
+    inputs:
+      - AGENTS.md
+      - the failure report, failing test or issue
+      - modules/<MODULE-ID>.md for the owning module
+      - docs/project/requirements.md (expected behaviour)
+      - docs/project/conventions.md
+      - state/modules.yaml, state/dependencies.yaml
+      - recent Git history for the affected paths
+    outputs:
+      - the smallest fix inside the owning module's allowed paths
+      - regression tests
+      - reports/failure-<MODULE-ID>-<date>.md
+      - a pull request or a fix commit on the assigned branch
+    tools: [read_repo, write_code, run_local_commands, create_branch, create_commit, create_pull_request]
+    authority: [read_repo, write_code, run_local_commands, create_branch, create_commit, create_pull_request]
+    allowed_actions:
+      - reproduce the issue deterministically before changing anything
+      - bisect, instrument and log locally to find the root cause
+      - fix within the owning module's allowed paths
+      - add a regression test that fails before and passes after the fix
+      - document the root cause, ownership and blast radius
+    forbidden_actions:
+      - modify multiple modules to make symptoms disappear
+      - change a test's expectations without evidence that the test was wrong
+      - introduce a workaround without recording it as a risk or an open question
+      - fix a defect whose root cause is another module's contract (escalate instead)
+    scope:
+      - paths listed in the owning module's allowed_to_modify
+    escalation_conditions:
+      - the root cause is a requirement, contract or architecture problem
+      - the correct fix spans modules or shared zones
+      - the defect is security-relevant or affects data integrity
+      - the only available fix is a workaround with known debt
+    completion_criteria:
+      - the root cause is explained, not just the symptom
+      - the fix is minimal and inside the owning module
+      - a regression test exists and was verified to fail before the fix
+      - validation commands pass and are pasted into the report
+      - the report states the blast radius and any residual risk
+    handoff_to: [review, testing]
+    may_combine_with: [implementation]
+    must_stay_separate_from: [review]
+
+combinations:
+  # When may one agent instance hold several roles? Small projects need fewer sessions.
+  allowed:
+    - [discovery, frontend-ux]
+    - [architecture, decomposition]
+    - [implementation, debugging]
+    - [implementation, testing]
+    - [testing, review]
+    - [testing, integration]
+  discouraged:
+    - [implementation, review]      # self-review is allowed; independent review is not
+    - [orchestration, implementation]
+  forbidden:
+    - [review, implementation]      # a validator never approves its own work as a validator

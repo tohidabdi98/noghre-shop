@@ -1,0 +1,93 @@
+# ci.yml — repository integrity + the project's verification pipeline
+#
+# Stack-agnostic on purpose: nothing here hard-codes a language. It runs the repository's own
+# scripts, so the same workflow works for any project started from this template.
+#
+# Jobs
+#   state-and-contracts : state files, module contracts, doc links, notebook/prompt sync, toolkit tests
+#   verify              : the project's typecheck / lint / format / test pipeline (scripts/verify.py)
+#   security            : opt-in secret scan + dependency audit (enable with the SECURITY_CHECKS var)
+#
+# The checks are strict: warnings fail too, so the repository is never "mostly" consistent. A pristine
+# template (and a copy that has not been bootstrapped yet) reports its placeholders as a notice rather
+# than an error, so a fresh clone is green; the moment bootstrap sets `initialised: true`, any leftover
+# placeholder becomes a build failure.
+
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  state-and-contracts:
+    name: state, contracts and docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate state, contracts, links and prompt sync
+        run: python scripts/tp.py validate --strict
+      - name: Show the board (informational)
+        run: python scripts/tp.py status || true
+      - name: Toolkit tests
+        run: python -m unittest discover -s scripts/tests -t .
+
+  verify:
+    name: typecheck, lint and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Uncomment the setup step your project needs (or replace with your stack's own):
+      # - uses: actions/setup-node@v4
+      #   with:
+      #     node-version: "22"
+      #     cache: npm
+      # - uses: actions/setup-go@v5
+      #   with:
+      #     go-version: "1.23"
+      # - uses: dtolnay/rust-toolchain@stable
+      - name: Run the project pipeline
+        run: python scripts/verify.py
+      - name: Fail if nothing is configured to run
+        # Guards against a silently empty pipeline. Remove this step while the stack is undecided.
+        env:
+          STRICT_VERIFY: ${{ vars.STRICT_VERIFY || 'false' }}
+        run: |
+          if [ "$STRICT_VERIFY" = "true" ]; then
+            python scripts/verify.py --strict
+          else
+            echo "STRICT_VERIFY is not 'true' — skipping (set the repository variable to enforce)."
+          fi
+
+  security:
+    name: security checks (opt-in)
+    runs-on: ubuntu-latest
+    if: ${{ vars.SECURITY_CHECKS == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Secret scan (gitleaks, pinned)
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:latest \
+            detect --source /repo --no-banner --redact
+      - name: Dependency audit
+        run: python scripts/verify.py --only security

@@ -1,0 +1,126 @@
+# state/agents.yaml — Example SaaS agent instances
+schema_version: 1
+updated_at: "2026-03-12"
+
+agents:
+  - agent_id: impl-auth-001
+    name: AUTH-001 Implementation
+    role: implementation
+    category: implementation
+    module_id: AUTH-001
+    project_id: "example-saas"
+    branch: agent/impl-auth-001/AUTH-001
+    status: done
+    current_task: "merged in PR #12"
+    parent_agent: null
+    replaced_by: null
+    created_at: "2026-03-06"
+    updated_at: "2026-03-09"
+    tools: [read_repo, write_code, run_local_commands, create_branch, create_commit, create_pull_request]
+    authority:
+      - modify assigned module
+      - create tests
+      - create commits
+      - create pull request
+    validation:
+      - command: "python scripts/verify.py"
+        result: "exit 0 (41 tests)"
+      - command: "python scripts/tp.py validate"
+        result: "exit 0"
+    notes: "UX sign-off recorded in reports/ux-validation-AUTH-001-2026-03-08.md"
+
+  - agent_id: impl-user-001
+    name: USER-001 Implementation
+    role: implementation
+    category: implementation
+    module_id: USER-001
+    project_id: "example-saas"
+    branch: agent/impl-user-001/USER-001
+    status: done
+    current_task: "merged in PR #15"
+    parent_agent: null
+    replaced_by: null
+    created_at: "2026-03-07"
+    updated_at: "2026-03-10"
+    tools: [read_repo, write_code, run_local_commands, create_branch, create_commit, create_pull_request]
+    authority:
+      - modify assigned module
+      - create tests
+      - create commits
+      - create pull request
+    validation:
+      - command: "python scripts/verify.py"
+        result: "exit 0 (23 tests)"
+    notes: ""
+
+  - agent_id: impl-project-001
+    name: PROJECT-001 Implementation
+    role: implementation
+    category: implementation
+    module_id: PROJECT-001
+    project_id: "example-saas"
+    branch: agent/impl-project-001/PROJECT-001
+    status: active
+    current_task: "awaiting merge of validated PR #18"
+    parent_agent: null
+    replaced_by: null
+    created_at: "2026-03-08"
+    updated_at: "2026-03-11"
+    tools: [read_repo, write_code, run_local_commands, create_branch, create_commit, create_pull_request]
+    authority:
+      - modify assigned module
+      - create tests
+      - create commits
+      - create pull request
+    validation:
+      - command: "python scripts/verify.py"
+        result: "exit 0 (37 tests)"
+    notes: "authz matrix test added after review finding NB1"
+
+  - agent_id: impl-dashboard-002
+    name: DASH-001 Implementation (first attempt)
+    role: implementation
+    category: implementation
+    module_id: DASH-001
+    project_id: "example-saas"
+    branch: agent/impl-dashboard-002/DASH-001
+    status: replaced
+    current_task: "abandoned: context exhausted while implementing the activity section"
+    parent_agent: null
+    replaced_by: impl-dashboard-003
+    created_at: "2026-03-10"
+    updated_at: "2026-03-11"
+    tools: [read_repo, write_code, run_local_commands, create_branch, create_commit, create_pull_request]
+    authority:
+      - modify assigned module
+      - create tests
+      - create commits
+      - create pull request
+    validation:
+      - command: "python scripts/verify.py"
+        result: "exit 1 (component tests for error state failing)"
+    notes: "see handoffs/2026-03-11-impl-dashboard-002-to-impl-dashboard-003-DASH-001.md"
+
+  - agent_id: impl-dashboard-003
+    name: DASH-001 Implementation (second attempt)
+    role: implementation
+    category: implementation
+    module_id: DASH-001
+    project_id: "example-saas"
+    branch: agent/impl-dashboard-003/DASH-001
+    status: active
+    current_task: "resolve review findings B1 (state screenshots) and B2 (keyboard walkthrough)"
+    parent_agent: impl-dashboard-002
+    replaced_by: null
+    created_at: "2026-03-11"
+    updated_at: "2026-03-12"
+    tools: [read_repo, write_code, run_local_commands, create_branch, create_commit, create_pull_request]
+    authority:
+      - modify assigned module
+      - create tests
+      - create commits
+      - create pull request
+    validation:
+      - command: "python scripts/verify.py"
+        result: "exit 0 (18 tests) — but AC-4/AC-5 evidence still missing"
+    notes: "continued from handoff; must re-run the previous agent's claims (done: they were accurate)"

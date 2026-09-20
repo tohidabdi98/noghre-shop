@@ -1,0 +1,54 @@
+# scripts/verify.config.yaml — the project's verification pipeline
+#
+# Owned by the Architecture Agent during the architecture phase (docs/project/architecture.md §11).
+# `python scripts/verify.py` runs these sections in order and fails on the first non-zero exit.
+# Explicit commands here ALWAYS override stack auto-detection.
+#
+# Rules
+#   * Every command must be non-interactive and runnable from the repository root.
+#   * Empty sections are skipped; `--strict` fails when nothing at all is configured (CI uses it
+#     once the project is set up).
+#   * `install` runs first, then typecheck, lint, format_check, test, e2e, security.
+#   * The contract `validation:` block in each module may reference `python scripts/verify.py`.
+#
+# Placeholders below: replace with your stack's real commands. Examples are commented out on
+# purpose — a silently invented command is worse than an empty section.
+schema_version: 1
+updated_at: 2026-01-01
+
+install: []
+  # - "npm ci"
+  # - "python -m pip install -r requirements.txt"
+
+typecheck: []
+  # - "npx tsc --noEmit"
+  # - "python -m mypy ."
+  # - "go build ./..."
+
+lint: []
+  # - "npx eslint ."
+  # - "python -m ruff check ."
+  # - "go vet ./..."
+
+format_check: []
+  # - "npx prettier --check ."
+  # - "python -m ruff format --check ."
+  # - "cargo fmt --check"
+
+test: []
+  # - "npm test"
+  # - "python -m pytest -q"
+  # - "go test ./..."
+  # - "python scripts/tp.py validate"     # repository integrity is part of verification
+
+e2e: []
+  # - "npx playwright test"
+
+security: []
+  # - "npx audit-ci --moderate"
+  # - "python -m pip_audit"
+  # - "gitleaks detect --no-banner"
+
+notes: |
+  Fill these in during the architecture phase. Until then `verify.py` auto-detects the stack
+  (node/go/rust/python) and reports exactly what it did and did not run.

@@ -1,0 +1,49 @@
+# Dependabot configuration — enable the ecosystems your project actually uses.
+#
+# Why it matters here: agents must not upgrade dependencies as a side effect of feature work
+# (docs/project/conventions.md §4). Dependency updates arrive as their own reviewed PRs.
+#
+# Uncomment one block per ecosystem. `open-pull-requests-limit` is deliberately small: a queue of
+# dependency PRs nobody reviews is worse than a slightly stale dependency.
+
+version: 2
+
+updates:
+  # Always valid, whoever the project is: keeps the workflow actions current.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci(repo)"
+
+  # Add one block per ecosystem your project actually uses, then delete the rest.
+  # - package-ecosystem: "npm"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #   open-pull-requests-limit: 3
+  #   labels: ["dependencies", "chore"]
+  #   commit-message:
+  #     prefix: "build(repo)"
+  #   groups:
+  #     dev-dependencies:
+  #       dependency-type: "development"
+
+  # - package-ecosystem: "pip"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #   open-pull-requests-limit: 3
+  #   labels: ["dependencies"]
+
+  # - package-ecosystem: "gomod"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+
+  # - package-ecosystem: "cargo"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"

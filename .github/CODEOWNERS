@@ -1,0 +1,32 @@
+# CODEOWNERS — who must approve a change
+#
+# Syntax: <path pattern> <@user or @org/team> ...
+# The LAST matching pattern wins. Agents are not GitHub users, so ownership here is expressed with
+# human/team handles; module ownership for agents is enforced by `python scripts/tp.py pr-check`.
+#
+# Replace `@your-handle` with real accounts, then delete these instructions.
+
+# Default: everything needs the project owner's review.
+*                                   @your-handle
+
+# --- Process integrity: only the human changes the rules -------------------------------
+/state/**                           @your-handle
+/modules/**                         @your-handle
+/docs/project/**                    @your-handle
+/docs/agents/**                     @your-handle
+/agents/**                          @your-handle
+/docs/workflows/**                  @your-handle
+/AGENTS.md                          @your-handle
+/HOW_TO_USE.ipynb                   @your-handle
+/.github/**                         @your-handle
+
+# --- Framework plumbing: reviewed by whoever owns the toolchain --------------------------
+/scripts/**                         @your-handle
+
+# --- Module source code: assign real reviewers per module as decomposition lands ---------
+# /src/auth/**                      @backend-reviewer
+# /src/dashboard/**                 @frontend-reviewer
+
+# --- Generated evidence: review is optional, but keep an eye on reports -------------------
+/reports/**                         @your-handle
+/handoffs/**                        @your-handle

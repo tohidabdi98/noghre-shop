@@ -1,0 +1,53 @@
+# state/project.yaml — Example SaaS (mid-flight reference)
+schema_version: 1
+
+project_id: "example-saas"
+name: "Example SaaS"
+description: "A calm dashboard for solo operators to keep track of their projects."
+owner: "template maintainer"
+repo_url: "https://github.com/example/example-saas"
+default_branch: "main"
+
+initialised: true
+profile: fullstack
+
+stage: implementation
+spec_status: approved
+
+version: 0.3.0
+milestone: "M1-core"
+created_at: "2026-03-01"
+updated_at: "2026-03-12"
+
+gates:
+  requirements_approved: true
+  ux_approved: true
+  architecture_approved: true
+  decomposition_approved: true
+  release_approved: false
+
+shared_zones:
+  - path: "src/app/routes.ts"
+    owner: "APP-001"
+    note: "route registry — modules request additions from the owner; never edited directly"
+  - path: "package.json"
+    owner: "APP-001"
+    note: "dependency manifest — additions batched per wave, ADR required for new runtime deps"
+  - path: "db/migrations/**"
+    owner: "DB-001"
+    note: "ordered migrations, one author per wave"
+  - path: "src/app/design-tokens.css"
+    owner: "DASH-001"
+    note: "design tokens — frontend-ux decides, one writer implements"
+
+docs:
+  requirements: docs/project/requirements.md
+  architecture: docs/project/architecture.md
+  decisions: docs/project/decisions.md
+  conventions: docs/project/conventions.md
+  definition_of_done: docs/project/definition_of_done.md
+  ux: docs/ux/ux_requirements.md
+  module_registry: state/modules.yaml
+
+security_checks_enabled: false
+notes: "Reference project used by the template's own tests and by HOW_TO_USE.ipynb section F."

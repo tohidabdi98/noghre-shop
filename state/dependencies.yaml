@@ -1,0 +1,22 @@
+# state/dependencies.yaml — inter-module dependency edges
+#
+# DIRECTION (read carefully):
+#     from: AUTH-001        # the module that NEEDS something
+#     to:   USER-001        # the module that must be finished first (upstream)
+#   ⇒ "AUTH-001 depends on USER-001". `to` must be validated|complete before `from` becomes ready.
+#
+# type:   contract | data | runtime | build | ui
+# status: pending | agreed | frozen | broken
+#         frozen = shape agreed and no changes without a change request (REQUIRED before parallel work)
+#
+schema_version: 1
+updated_at: 2026-01-01
+
+edges: []
+
+  # - from: DASH-001
+  #   to: USER-001
+  #   type: contract
+  #   interface: "docs/project/architecture.md#61-internal-interfaces-module--module"
+  #   status: frozen
+  #   notes: "consumes UserRepository.readProfile(userId)"

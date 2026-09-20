@@ -1,0 +1,68 @@
+# agent-pr-check.yml — the agent gate
+#
+# Enforces the parts of the workflow that must not rely on discipline:
+#   * branch naming            agent/<agent-id>/<MODULE-ID> | human/<name>/<topic>
+#   * commit conventions       <type>(<MODULE-ID>): <subject> + Agent:/Module:/Validated-With: trailers
+#   * ownership                every changed path inside allowed_to_modify, none in forbidden_to_modify
+#   * PR completeness          Module / Agent / Summary / Acceptance criteria / Tests executed /
+#                              Validation results / Known limitations sections present
+#
+# Agents are not GitHub users, so identity is enforced through commit trailers and the PR body
+# (docs/agents/provider_adapters.md §3). All logic lives in scripts/tp.py so you can run the same
+# gate locally: `python scripts/tp.py pr-check --base main`.
+
+name: agent-pr-check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: agent-pr-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  conventions:
+    name: agent conventions and ownership
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # the commit history is the thing being checked
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Repository state must be consistent first
+        run: python scripts/tp.py validate --strict
+
+      - name: Extract the pull request body
+        env:
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+        run: |
+          python - <<'PY'
+          import json, os
+          with open(os.environ["GITHUB_EVENT_PATH"], "r", encoding="utf-8") as handle:
+              event = json.load(handle)
+          body = ((event.get("pull_request") or {}).get("body")) or ""
+          with open("pr-body.md", "w", encoding="utf-8") as handle:
+              handle.write(body)
+          print("PR body: %d characters" % len(body))
+          PY
+
+      - name: Branch, commit, ownership and PR-body check
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          git fetch --no-tags origin "$BASE_REF" "$HEAD_REF"
+          # `--branch` accepts a remote-tracking ref: pr-check strips `origin/` before applying the
+          # naming rules, so CI checks the real branch name while diffing against the fetched ref.
+          python scripts/tp.py pr-check \
+            --base "origin/$BASE_REF" \
+            --branch "origin/$HEAD_REF" \
+            --body-file pr-body.md

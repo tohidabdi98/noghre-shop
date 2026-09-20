@@ -1,0 +1,38 @@
+# state/project.yaml — project identity, stage and gates
+# Written by `python scripts/tp.py bootstrap` and the orchestrator; human owns the gates.
+# Validate with `python scripts/tp.py validate`.
+
+schema_version: 1
+project_id: "noghre-shop"
+name: "NoghreShop"
+description: "Online Silver Jewelry Store"
+owner: ""
+repo_url: ""
+default_branch: "main"
+initialised: true
+profile: "fullstack"
+stage: "discovery"
+spec_status: "draft"
+version: "0.0.0"
+milestone: "M0-bootstrap"
+created_at: "2026-09-20"
+updated_at: "2026-09-20"
+gates:
+  requirements_approved: false
+  ux_approved: false
+  architecture_approved: false
+  decomposition_approved: false
+  release_approved: false
+shared_zones: []
+docs:
+  requirements: "docs/project/requirements.md"
+  requirements_index: "docs/project/requirements.yaml"
+  architecture: "docs/project/architecture.md"
+  decisions: "docs/project/decisions.md"
+  conventions: "docs/project/conventions.md"
+  definition_of_done: "docs/project/definition_of_done.md"
+  ux: "docs/ux/ux_requirements.md"
+  module_registry: "state/modules.yaml"
+  agent_registry: "docs/agents/agent_registry.yaml"
+security_checks_enabled: false
+notes: "Replaces placeholders: noghre-shop, NoghreShop, Online Silver Jewelry Store, , , main"

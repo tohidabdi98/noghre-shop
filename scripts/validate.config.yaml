@@ -1,0 +1,45 @@
+# scripts/validate.config.yaml — knobs for `python scripts/tp.py validate`
+#
+# Everything here exists to keep the integrity checks strict without producing false positives for
+# paths that are intentionally absent (examples in documentation, future files, generated caches).
+schema_version: 1
+
+# Paths that documents legitimately reference but that must not exist yet.
+# fnmatch patterns are supported (* matches across '/').
+allow_missing_paths:
+  - "state/.cache/*"                 # generated context packs (gitignored)
+  - "modules/*-*.md"                 # module contracts are per project; docs use AUTH-001 as an example
+  - "modules/MODULE-ID.md"           # template placeholder inside docs
+  - ".github/copilot-instructions.md" # provider-specific file, created only if you use Copilot
+  - "docs/project/change_requests/CR-*"
+  - "examples/*"                    # the reference project is optional in a derived project
+  - "handoffs/*-to-*"               # handoff naming examples in the documentation
+
+# Files that intentionally contain {{PLACEHOLDER}} tokens as documentation.
+placeholder_check_exclude:
+  - "HOW_TO_USE.ipynb"               # shows the tokens in prose and commands
+  - "scripts/README.md"              # documents the token list for bootstrap
+  - "scripts/validate.config.yaml"   # this file
+  - "scripts/tp.py"                  # defines the token → value mapping
+  - "scripts/tplib/repoutil.py"      # defines PLACEHOLDERS
+  - "docs/templates/change_request.md"
+  - "docs/agents/templates/agent_instance.yaml" # an artifact you copy and fill in; the tokens are its documentation
+  - "docs/agents/templates/*.md"          # the same, for the contract/handoff/report templates
+
+# Which path prefixes the documentation link check treats as repository paths.
+link_check_prefixes:
+  - "docs/"
+  - "agents/"
+  - "modules/"
+  - "state/"
+  - "scripts/"
+  - "handoffs/"
+  - "reports/"
+  - "examples/"
+  - ".github/"
+
+# Non-markdown files whose links are also checked.
+link_check_extra_files:
+  - "README.md"
+  - "AGENTS.md"
+  - "HOW_TO_USE.ipynb"

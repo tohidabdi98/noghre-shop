@@ -1,0 +1,94 @@
+# ---------------------------------------------------------------------------
+# Secrets and local configuration — never commit these
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+credentials.json
+service-account*.json
+
+# ---------------------------------------------------------------------------
+# Template/agent scratch space (generated context packs, simulations, tests)
+# ---------------------------------------------------------------------------
+.tmp/
+state/.cache/
+state/**/.cache/
+
+# ---------------------------------------------------------------------------
+# Editor / OS noise
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+*.swp
+*.swo
+
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# ---------------------------------------------------------------------------
+# Node / JS / TS
+# ---------------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.next/
+.nuxt/
+.svelte-kit/
+.parcel-cache/
+coverage/
+playwright-report/
+test-results/
+storybook-static/
+
+# ---------------------------------------------------------------------------
+# Go / Rust / Java / .NET
+# ---------------------------------------------------------------------------
+*.exe
+*.exe~
+vendor/
+target/
+*.class
+*.jar
+bin/
+obj/
+*.user
+
+# ---------------------------------------------------------------------------
+# Infrastructure as code
+# ---------------------------------------------------------------------------
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+terraform.tfvars
+
+# ---------------------------------------------------------------------------
+# Data / artifacts that must not live in Git
+# ---------------------------------------------------------------------------
+*.sqlite
+*.db
+*.log
+tmp/
+cache/

@@ -1,0 +1,34 @@
+# Commit message template — enable with:
+#   git config commit.template .gitmessage
+#
+# Format
+#   <type>(<scope>): <subject>
+#
+#   <body: what changed and why, wrapped at 72 columns>
+#
+#   Agent: <agent-id>
+#   Agent-Role: <role>
+#   Module: <MODULE-ID>
+#   Refs: #<issue-or-pr>
+#   Validated-With: <exact command(s) and result>
+#
+# Types: feat fix refactor perf docs test build ci chore revert spec ux contract
+# Scope: a MODULE-ID (e.g. AUTH-001) — or `repo` for repository-wide changes.
+#
+# Rules
+#   * One coherent change per commit.
+#   * Agent/Agent-Role/Module trailers are REQUIRED on branches under agent/*.
+#   * Never claim validation you did not run.
+#   * Subject in the imperative mood, no trailing period, <= 72 chars.
+#
+# Example
+#   feat(AUTH-001): implement password reset flow
+#
+#   Adds a single-use, expiring reset token issued through the notification
+#   port so no mail provider is hard-wired into the auth module.
+#
+#   Agent: impl-auth-001
+#   Agent-Role: implementation
+#   Module: AUTH-001
+#   Refs: #42
+#   Validated-With: python scripts/verify.py (exit 0), 14 tests passed

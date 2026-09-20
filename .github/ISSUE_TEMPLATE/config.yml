@@ -1,0 +1,13 @@
+# GitHub issue chooser configuration.
+# Replace your-org/your-repo with the real remote once the project has one.
+blank_issues_enabled: false
+contact_links:
+  - name: How to use this project framework
+    url: https://github.com/your-org/your-repo/blob/main/HOW_TO_USE.ipynb
+    about: "The primary guide: lifecycle, agent prompts, gates and conventions."
+  - name: Agent rules and escalation
+    url: https://github.com/your-org/your-repo/blob/main/AGENTS.md
+    about: "What every agent may do, what it must escalate, and how to identify itself."
+  - name: Change process
+    url: https://github.com/your-org/your-repo/blob/main/docs/workflows/change_management.md
+    about: "How requirements, UX, architecture and module boundaries change after approval."
