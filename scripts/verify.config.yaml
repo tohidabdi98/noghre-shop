@@ -1,54 +1,55 @@
 # scripts/verify.config.yaml — the project's verification pipeline
 #
-# Owned by the Architecture Agent during the architecture phase (docs/project/architecture.md §11).
-# `python scripts/verify.py` runs these sections in order and fails on the first non-zero exit.
-# Explicit commands here ALWAYS override stack auto-detection.
+# Owned by the Architecture Agent (docs/project/architecture.md §11, ADR-010).
+# `python scripts/verify.py` runs every configured command (in section order), then reports all
+# failures; a non-zero exit fails the run. `--strict` also fails when nothing is configured.
 #
-# Rules
-#   * Every command must be non-interactive and runnable from the repository root.
-#   * Empty sections are skipped; `--strict` fails when nothing at all is configured (CI uses it
-#     once the project is set up).
-#   * `install` runs first, then typecheck, lint, format_check, test, e2e, security.
-#   * The contract `validation:` block in each module may reference `python scripts/verify.py`.
-#
-# Placeholders below: replace with your stack's real commands. Examples are commented out on
-# purpose — a silently invented command is worse than an empty section.
+# Stack (ADR-001/002/010): TypeScript on Next.js, PostgreSQL 16 + Prisma, Vitest + Playwright.
+# Commands assume: Node 22 LTS; `install` runs first; unit/integration tests need the `db-test`
+# Postgres from docker-compose (`docker compose up -d db-test`); e2e additionally builds the app.
+# Everything is non-interactive and runnable from the repository root.
+
 schema_version: 1
-updated_at: 2026-01-01
+updated_at: 2026-09-21
 
-install: []
-  # - "npm ci"
-  # - "python -m pip install -r requirements.txt"
+install:
+  # `npm ci` once the app exists (package.json + lockfile from the FOUNDATION module).
+  # Until then the repo is docs-only; verify.py reports this section as a no-op.
+  - "npm ci"
 
-typecheck: []
-  # - "npx tsc --noEmit"
-  # - "python -m mypy ."
-  # - "go build ./..."
+typecheck:
+  - "npx --no-install tsc --noEmit"
+  - "npx --no-install prisma validate"
 
-lint: []
-  # - "npx eslint ."
-  # - "python -m ruff check ."
-  # - "go vet ./..."
+lint:
+  - "npx --no-install eslint . --max-warnings 0"
 
-format_check: []
-  # - "npx prettier --check ."
-  # - "python -m ruff format --check ."
-  # - "cargo fmt --check"
+format_check:
+  - "npx --no-install prettier --check ."
 
-test: []
-  # - "npm test"
-  # - "python -m pytest -q"
-  # - "go test ./..."
-  # - "python scripts/tp.py validate"     # repository integrity is part of verification
+test:
+  # unit + integration + contract tests (integration hits the real Postgres from db-test)
+  - "docker compose -f docker-compose.yml up -d --wait db-test"
+  - "npx --no-install prisma migrate deploy"
+  - "npx --no-install vitest run"
 
-e2e: []
-  # - "npx playwright test"
+e2e:
+  # full browser suite: UF-01…UF-04 flows, three-width screenshots, axe scan (ADR-010)
+  - "npx --no-install playwright install chromium --with-deps"
+  - "npx --no-install playwright test"
 
-security: []
-  # - "npx audit-ci --moderate"
-  # - "python -m pip_audit"
-  # - "gitleaks detect --no-banner"
+security:
+  - "npm audit --omit=dev --audit-level=high"
 
 notes: |
-  Fill these in during the architecture phase. Until then `verify.py` auto-detects the stack
-  (node/go/rust/python) and reports exactly what it did and did not run.
+  Filled by the Architecture Agent 2026-09-21 for the approved stack (ADR-001/002/010).
+  Nothing here requires paid services: the DB is a disposable container (db-test), the payment
+  provider is the in-repo sandbox adapter (ADR-004), and screenshots stay out of git.
+
+  Current state: the repository is still docs-only — the app modules (package.json, Prisma,
+  configs) arrive with the FOUNDATION module in the bootstrap wave. Until then the npm/npx
+  commands fail by design (nothing to install), which verify.py reports honestly; `tp.py
+  validate` (0 errors) is the working check. This file becomes fully green in order as
+  FOUNDATION lands: install → typecheck → lint → format → test → e2e → security.
+  Current first failure to expect: the test section's docker compose up (no docker-compose.yml
+  exists yet) — everything after it still runs and fails the same way.

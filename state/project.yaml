@@ -11,19 +11,66 @@ repo_url: ""
 default_branch: "main"
 initialised: true
 profile: "fullstack"
-stage: "discovery"
+stage: "architecture"
 spec_status: "approved"
 version: "0.0.0"
-milestone: "M0-bootstrap"
+milestone: "M1-architecture"
 created_at: "2026-09-20"
-updated_at: "2026-09-20"
+updated_at: "2026-09-21"
 gates:
   requirements_approved: true
-  ux_approved: false
+  ux_approved: true
   architecture_approved: false
   decomposition_approved: false
   release_approved: false
-shared_zones: []
+shared_zones:
+  # Paths more than one module will need. Owner IDs are the provisional module names from
+  # docs/project/architecture.md §4 — the decomposition agent replaces them with real MODULE-IDs.
+  - path: "package.json"
+    owner: "FOUNDATION"
+    note: "dependency manifest + scripts; additions batched per wave; a new runtime dependency needs an ADR + human approval (conventions §4)"
+  - path: "package-lock.json"
+    owner: "FOUNDATION"
+    note: "only written by npm install/ci — never hand-edited"
+  - path: "tsconfig.json"
+    owner: "FOUNDATION"
+    note: "strict flags and path aliases are frozen here; a change affects every module"
+  - path: "eslint.config.mjs"
+    owner: "FOUNDATION"
+    note: "module-boundary rule (no cross-module deep imports) lives here"
+  - path: "next.config.ts"
+    owner: "FOUNDATION"
+    note: "routing/asset/security headers; changes need architecture agreement"
+  - path: "prisma/schema.prisma"
+    owner: "FOUNDATION"
+    note: "single schema author; other modules request model changes"
+  - path: "prisma/migrations/**"
+    owner: "FOUNDATION"
+    note: "ordered migrations, one author per wave; destructive or data-moving changes need human approval (architecture §5.4)"
+  - path: "src/app/layout.tsx"
+    owner: "SHELL"
+    note: "root layout: <html lang=fa dir=rtl data-month=…> plus token injection — one writer"
+  - path: "src/styles/tokens.css"
+    owner: "SHELL"
+    note: "design tokens incl. the twelve monthly accent sets; frontend-ux decides the values (design_system.md §2.1), only this module writes them"
+  - path: "src/lib/fa.ts"
+    owner: "SHELL"
+    note: "Farsi copy, Persian digits, Jalali date and bidi-safe formatting helpers"
+  - path: "docker-compose.yml"
+    owner: "OPS"
+    note: "runtime topology (app, worker, db, edge); changes need an ADR"
+  - path: "Dockerfile"
+    owner: "OPS"
+    note: "one image, two entrypoints (web, worker)"
+  - path: "Caddyfile"
+    owner: "OPS"
+    note: "TLS, reverse proxy, uploaded-file serving"
+  - path: ".github/workflows/**"
+    owner: "FOUNDATION"
+    note: "CI jobs and required checks; new required jobs are an architecture decision"
+  - path: ".env.example"
+    owner: "OPS"
+    note: "every environment variable the app reads appears here; never a real secret"
 docs:
   requirements: "docs/project/requirements.md"
   requirements_index: "docs/project/requirements.yaml"
@@ -35,4 +82,4 @@ docs:
   module_registry: "state/modules.yaml"
   agent_registry: "docs/agents/agent_registry.yaml"
 security_checks_enabled: false
-notes: "Replaces placeholders: noghre-shop, NoghreShop, Online Silver Jewelry Store, , , main"
+notes: "Architecture phase in progress: stack/hosting/payment ADRs (ADR-001…ADR-010) and shared zones recorded 2026-09-21; gates.architecture_approved stays false until the human reviews docs/project/architecture.md."

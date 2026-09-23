@@ -32,6 +32,14 @@
 | OQ-010 | What must a promo code do in v1 (type, limits, expiry)? | product | checkout FRs, admin workflows | human | 2026-09-20 | answered | % off + expiry + usage limit — DEC-024 |
 | OQ-011 | Uptime expectation for v1 — formal availability target or best-effort fix-fast? (Round 5 question returned unanswered.) | product | NFR availability target, ops scope | human | 2026-09-20 | answered | Best-effort, fix-fast — DEC-031 |
 | OQ-012 | Is there a launch deadline? (Round 6–7 question returned unanswered.) | product | milestone planning, orchestration waves | human | 2026-09-20 | answered | No fixed date — DEC-032 |
+| OQ-013 | Which Persian web font(s) does v1 use? (Owner will test candidates.) | ux | design tokens + final typography (not flows/IA) | human + frontend-ux | 2026-09-20 | open | Testing shortlist: Vazirmatn [REC], IRANSansX (licensed, paid), Estedad/Peyda (free) |
+| OQ-014 | Product photography: who shoots the 50–200 launch items, in what style, by when? | product | SC-2 (fully listed catalog), gallery spec realism, product-card art direction | human | 2026-09-20 | open | No photos exist yet; style guide to be provided by frontend-ux (design_system.md) |
+| OQ-015 | Does the monthly accent follow the calendar month (Gregorian, default) or each visitor's own birth month — and may the owner pin one stone? | ux | design tokens §2.1 (accent sets), homepage «سنگ این ماه» chip, month resolver | human + frontend-ux | 2026-09-21 | open | `DEC-050` ships the calendar-month reading, on the Gregorian calendar since `DEC-053`; per-visitor personalisation needs a decision (storage, first-paint flash, no-JS behaviour) |
+| OQ-016 | How far does the ماه‌سنگ specialization go — one stone value plus a filter option, or a dedicated landing page plus a real stone taxonomy (stone types, counts, sizes) on products? | product | catalog attributes/filters, admin product form, IA and screens, `DEC-051` clause (b) | human | 2026-09-21 | open | v1 default: one stone value «ماه‌سنگ» + filter option (the homepage band of `DEC-051` clause a was superseded by the `DEC-052` album, which is informational only); a wider taxonomy is a requirement change |
+| OQ-017 | Container registry & CI deploy path to the Iranian VPS: is a registry reachable from Iran, or do images build on the server? Which CI runner deploys (GitHub-hosted cannot reach the box)? | architecture (ops) | `OPS` deploy pipeline, CI credentials, rollback procedure (`ADR-003`) | human + architecture | 2026-09-21 | open | Default assumption until answered: build on the server (`git pull` + `docker compose build`), CI runs tests only — works everywhere, loses image-based rollback; a reachable registry restores `pull && up -d` deploys |
+| OQ-018 | Which domestic SMTP/email provider sends order/status email, and what are its limits? | architecture (`ADR-008`) | `NOTIFY` transport config, retry/backoff tuning, buyer-email copy tests | human | 2026-09-21 | open | `NOTIFY` is transport-agnostic SMTP; provider named at launch; SMS stays out of v1 (`OQ-019`) |
+| OQ-020 | Off-box backup copy: which object storage (or documented manual download routine) holds the nightly `pg_dump`? | architecture (ops) | disaster recovery, release drill (`ADR-003`, DoD L4) | human | 2026-09-21 | open | Today: on-box dumps (14-day retention) + pre-deploy snapshots; an off-box copy is the missing piece for a dead-VPS scenario |
+| OQ-021 | Domain, DNS and TLS provider (domestic; is Let's Encrypt reachable?) and the owner's TOTP device for admin | architecture (ops) | `OPS` Caddyfile config, launch readiness, admin login hardening (`ADR-005`) | human | 2026-09-21 | open | Caddy automation assumed; if LE is unreachable, fall back to a domestic CA/manual cert — one config change |
 
 Type: `product` · `ux` · `technical` · `process` · `compliance`.
 Status: `open` · `answered` · `deferred` · `withdrawn`.
@@ -200,3 +208,147 @@ Status: `open` · `answered` · `deferred` · `withdrawn`.
 - **Recommendation:** `[REC]` option 1, consistent with DEC-008.
 - **Trigger:** must be resolved before the human approves the requirements spec.
 - **Answer:** No fixed date; quality gates decide readiness (2026-09-20) — **DEC-032**.
+
+### OQ-013 — Persian web font selection
+- **Asked by:** frontend-ux (UX round 1)
+- **Context:** Farsi-native typography (PRIN-4) needs a font with excellent screen
+  legibility, full Persian glyph coverage, and multiple weights. DEC-030 (minimal costs)
+  biases toward free fonts; the owner wants to test candidates before committing.
+- **Options:**
+  1. Vazirmatn — free/open, variable weights, excellent UI legibility `[REC]`
+  2. IRANSansX family — the market's de-facto commercial standard, licensed (paid)
+  3. Estedad / Peyda — free/open alternatives worth a side-by-side
+- **Recommendation:** `[REC]` test Vazirmatn vs IRANSansX vs Estedad on real product data;
+  default to Vazirmatn unless the licensed option visibly wins.
+- **Impact:** design tokens, headings/body ramp, price/numeral rendering; does **not** block
+  flows, IA or screens.
+- **Answer:** —
+
+### OQ-014 — Product photography production plan
+- **Asked by:** frontend-ux (UX round 1) — **owner confirmed no product photos exist**
+- **Context:** SC-2 requires every launch item listed with photo(s) within 90 days of
+  launch; FR-PROD-1/FR-ADM-1 need multi-photo galleries; product-card and gallery art
+  direction depend on a consistent photo style (modern minimal, DEC-035).
+- **Options:**
+  1. Owner shoots everything on a simple consistent setup (light box/neutral background) —
+     cheapest; frontend-ux provides a one-page style guide.
+  2. Professional photographer for hero categories, owner shoots the rest — costs money
+     (DEC-030 tension), best first impression.
+- **Recommendation:** `[REC]` option 1 for v1 (consistent neutral background, ≥ 3 photos per
+  product per FR-ADM-1); style guide delivered with the design system.
+- **Impact:** SC-2, gallery empty states, admin upload UX, launch readiness.
+- **Answer:** —
+
+### OQ-015 — Whose month drives the accent?
+- **Asked by:** frontend-ux (`DEC-050` implementation) — **owner asked for a stone-of-the-month accent**
+- **Context:** `DEC-050` themes the storefront with the current **Gregorian** month's birthstone colour (`DEC-053`).
+  The obvious extension is personalisation: show a visitor the stone of *their* birth month (a small
+  «ماه تولد شما؟» selection, stored locally). That changes the resolver (visitor state instead of the
+  calendar), the first paint (possible flash or a client-only accent) and the no-JS/SEO rendering,
+  so it cannot be assumed.
+- **Options:**
+  1. Calendar month only, no personalisation `[REC]` — one accent per render, trivially cacheable,
+     zero privacy surface.
+  2. Calendar month by default **plus** an optional visitor picker that switches the accent and the
+     homepage chip until the browser is cleared — warmer, but needs a pre-paint script and a
+     "why did the colour change?" explainer.
+  3. Owner-pinned stone (a single accent chosen in admin instead of a monthly cycle) — calmest, but
+     loses the monthly narrative and the moonstone season.
+- **Prototype (option 2, built for review — not a decision):** `docs/ux/style_tile.html` now carries a
+  working picker («ماه تولد شما (اختیاری)» + «پاک‌کردن») and behaves like the shipped version would:
+  * **priority** `?month=` (review/owner pin) → stored birth month → Gregorian calendar month, with
+    the resolution source written to `data-month-source` on `<html>` and named in the UI, so a
+    reviewer can always see *why* this colour is showing;
+  * **no flash by construction** — the tokens and the resolver sit in an inline script in `<head>`
+    that sets a colour-only inline style on `<html>` before the body exists; the body script only
+    updates labels. Verified against the artifact (stored month → correct accent on first paint,
+    no layout change);
+  * **storage** is `localStorage` key `noghre.birthMonth` only — never a cookie, never sent to the
+    server, wrapped in `try/catch` so private mode just falls back to the calendar month;
+  * **no-JS / cleared storage / server render** all land on the calendar month, which is also the
+    `:root` fallback (`ژانویه · گارنت` if nothing resolves at all);
+  * **the «این ماه» marker in the album always follows the calendar**, never the preference — the
+    season is still the calendar's even when the visitor wears their own stone.
+- **Open sub-questions the prototype exposes (needed before this can be accepted):**
+  1. Where does the control live — beside the album tiles, a header chip, or a first-visit prompt?
+     (The prototype puts it in the accent section of the style tile, which is not a storefront
+     screen.)
+  2. Does HTML caching stay safe? The server renders the calendar month and the script overrides it,
+     so a cached page is still correct for every visitor — confirm before shipping.
+  3. Do we explain a *second* time when the visitor's month differs from the calendar's (two stones
+     on screen: chip + album marker)? The prototype copies that burden onto the chip wording and the
+     source line.
+  4. Analytics/telemetry: none in the prototype; decide whether a bare, non-identifying counter of
+     «picker used» is acceptable (PRIN-6 keeps it optional).
+- **Impact:** design tokens §2.1/§7 (prototype-tagged), homepage chip and album, month resolver,
+  caching, visual baselines, privacy note in the footer.
+- **Answer:** —
+
+### OQ-016 — Scope of the ماه‌سنگ specialization
+- **Asked by:** frontend-ux (`DEC-051`)
+- **Context:** the ماه‌سنگ pieces need real product paths. `DEC-051` clause (b) adds one product
+  value («ماه‌سنگ») on top of the existing stone/no-stone attribute, and the homepage stone album
+  (`DEC-052`) is informational only — no tile is clickable in the storefront — so the speciality's
+  traffic has to come from the filter and product pages. A real gemstone taxonomy (stone type, stone
+  count/size, per-stone collections, a `/moonstone` landing page) is a much larger catalog and admin
+  change — and gemstone inventory depth is a supply question only the owner can answer.
+- **Options:**
+  1. v1 as specified `[REC]` — one «ماه‌سنگ» value plus the stone filter option (no homepage CTA
+     after `DEC-052`); revisit after launch with real demand data.
+  2. Add a `/moonstone` collection page now (hero, education, grid, FAQ) and link it from the stone
+     filter and the ژوئن album tile — stronger storefront storytelling, one more screen and IA
+     change, and the only way an album tile becomes actionable.
+  3. Full stone taxonomy (multiple stone types + stone fields on products + per-stone collections) —
+     best long-term catalog, largest v1 cost and the most admin burden on a non-technical owner
+     (PRIN-6).
+- **Impact:** catalog attributes, admin product form, filters, IA/sitemap, screens, SEO surface.
+- **Answer:** —
+
+### OQ-017 — CI → VPS deploy path (registry reachability from Iran)
+- **Asked by:** architecture (`ADR-003`) — **owner decision (cost/ops implication)**
+- **Context:** the approved hosting is one domestic VPS running Docker Compose. Image-based deploys
+  (`docker compose pull && up -d`) need a container registry reachable **from Iran**; GitHub-hosted CI
+  runners also cannot reach the box for a deploy job. The two defaults disagree, so the pipeline shape
+  must be chosen before the `OPS` module is contracted.
+- **Options:**
+  1. Build on the server (`git pull` + `docker compose build`) `[REC]` — works with any host, zero extra
+     services; costs build minutes on the box and weakens rollback to "previous git tag rebuild".
+  2. Domestic container registry (if the host offers one) — restores pull-based deploys and clean
+     rollback; adds a service account and a small cost.
+  3. Self-hosted CI runner on the VPS (GitHub Actions runner) — pull-based deploys from existing CI;
+     runs workloads on the production box (isolation must be reviewed).
+- **Impact:** `OPS` contract, CI workflows (shared zone), secrets, rollback procedure, release drill.
+- **Answer:** —
+
+### OQ-018 — Domestic SMTP/email provider for order and status email
+- **Asked by:** architecture (`ADR-008`)
+- **Context:** `DEC-021` requires email notifications where the buyer gave an address. The transport is
+  provider-agnostic SMTP behind the outbox, but the provider (and its sending limits/spam reputation)
+  affects retry tuning and whether buyer email is reliable enough to promise.
+- **Options:** owner names a domestic provider at launch; v1 ships with SMTP config + sandbox-safe
+  behaviour either way.
+- **Impact:** `NOTIFY` config, failure drill, admin failure panel expectations.
+- **Answer:** —
+
+### OQ-020 — Off-box backup copy for the nightly `pg_dump`
+- **Asked by:** architecture (`ADR-003`)
+- **Context:** backups currently live on the same VPS (14-day retention + pre-deploy snapshots). A dead
+  VPS then loses both the data and the backups. An off-box copy (domestic object storage, or a
+  documented manual download routine the owner actually performs) closes that hole but needs a decision
+  and possibly a small cost.
+- **Options:**
+  1. Domestic object storage bucket, nightly upload from the worker `[REC]` — automated, small cost.
+  2. Documented manual routine (owner downloads weekly, verified by a checklist) — free, depends on
+     discipline (`NFR-MAINT-1` risk).
+- **Impact:** release drill (DoD L4), disaster recovery story, worker job list.
+- **Answer:** —
+
+### OQ-021 — Domain, DNS/TLS provider and admin TOTP device
+- **Asked by:** architecture (`ADR-003`, `ADR-005`)
+- **Context:** Caddy automates Let's Encrypt certificates, but reachability of LE from the domestic host
+  (and the DNS provider's compatibility) must be confirmed; the admin login recommends TOTP, which needs
+  the owner to have/choose an authenticator app.
+- **Options:** owner picks the registrar/DNS; fallback if LE is unreachable = manual certificate from a
+  domestic CA (one Caddyfile change).
+- **Impact:** launch readiness, `OPS` config, admin hardening.
+- **Answer:** —

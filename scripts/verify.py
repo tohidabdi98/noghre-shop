@@ -202,7 +202,7 @@ def main(argv=None):
         code = run(root, command)
         if code != 0:
             failures.append((section, command, code))
-            print("x [%s] failed (exit %d): %s" % (section, command, code))
+            print("x [%s] failed (exit %d): %s" % (section, code, command))
 
     print("\n%d command(s) run · %d failure(s)" % (len(planned), len(failures)))
     for section, command, code in failures:

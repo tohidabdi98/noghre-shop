@@ -53,32 +53,45 @@ class ExampleProjectTests(unittest.TestCase):
 
 
 class TemplateRootTests(unittest.TestCase):
-    """The template itself is *expected* to be un-bootstrapped.
+    """Placeholder handling across repo states.
 
-    Its {{PLACEHOLDERS}} are not defects, so they collapse into one notice and validation stays green —
-    otherwise every fresh clone would look broken. Once `bootstrap` sets `initialised: true`, the same
-    tokens become blocking errors, which is what stops a placeholder reaching a real project.
+    In a pristine template the tokens are not defects: they collapse into one info notice and
+    validation stays green, so a fresh clone does not look broken. Once a project is initialised
+    (`initialised: true`), the same tokens become blocking errors — that is what stops a
+    placeholder from reaching a real repository. Both behaviours are asserted against a fixture
+    (a full copy of this template reset to the pristine state, token injected at test time),
+    because a derived project like NoghreShop is already bootstrapped: there, ROOT has no
+    placeholders and the pristine expectations would be vacuous or wrong.
     """
 
+    def _pristine_fixture(self) -> str:
+        """Full copy of this template, reset to the un-bootstrapped state, token injected."""
+        fixture = scratch_dir("pristine-template-fixture")
+        copy_project(fixture, include_examples=False)
+        state_path = os.path.join(fixture, "state", "project.yaml")
+        text = repoutil.read_text(state_path).replace("initialised: true", "initialised: false")
+        token = "{" * 2 + "PROJECT_ID" + "}" * 2  # assembled — no literal token may live in this file
+        text = text.replace('project_id: "noghre-shop"', 'project_id: "%s"' % token)
+        repoutil.write_text(state_path, text)
+        return fixture
+
     def test_unbootstrapped_template_reports_a_single_notice(self):
-        code, out, _ = run_tp(["validate"])
+        code, out, _ = run_tp(["validate", "--root", self._pristine_fixture()])
         self.assertEqual(code, 0, out)
         self.assertIn("template.uninitialised", out)
         self.assertNotIn("placeholder.unreplaced", out)
         self.assertIn("0 error(s)", out)
 
     def test_initialised_project_treats_placeholders_as_errors(self):
-        code, out, _ = run_tp(["validate", "--strict", "--root", EXAMPLE])
-        self.assertEqual(code, 0, out)
-        with tempfile.TemporaryDirectory() as destination:
-            shutil.copytree(ROOT, destination, dirs_exist_ok=True)
-            # simulate a project that was initialised but still has a stray token
-            state_path = os.path.join(destination, "state", "project.yaml")
-            text = repoutil.read_text(state_path).replace("initialised: false", "initialised: true")
-            repoutil.write_text(state_path, text)
-            code, out, _ = run_tp(["validate", "--root", destination])
-            self.assertEqual(code, 1)
-            self.assertIn("placeholder.unreplaced", out)
+        fixture = self._pristine_fixture()
+        state_path = os.path.join(fixture, "state", "project.yaml")
+        # a project that has been initialised must not ship a stray token
+        text = repoutil.read_text(state_path).replace("initialised: false", "initialised: true")
+        repoutil.write_text(state_path, text)
+        code, out, _ = run_tp(["validate", "--root", fixture])
+        self.assertEqual(code, 1)
+        self.assertIn("placeholder.unreplaced", out)
+        self.assertIn("state/project.yaml", out)
 
     def test_validation_works_without_pyyaml(self):
         """The framework claims zero dependencies: mask PyYAML and the built-in parser takes over."""

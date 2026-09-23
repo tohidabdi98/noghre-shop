@@ -60,3 +60,18 @@
 | Coverage percentage raised | coverage is a signal, not a criterion |
 | CI green with required jobs skipped | unverified is not verified |
 | Validation claimed without a command + output | claims are not evidence |
+
+## Stack-specific additions (NoghreShop — `ADR-001`…`ADR-010`)
+
+- [ ] TypeScript strict: `npm run typecheck` clean; no new `any`/`@ts-ignore` without a comment naming the reason and an owner.
+- [ ] Module boundary intact: imports from other domains only via their `public.ts` barrel; `"use client"` only on interaction islands (lint + review).
+- [ ] Data access through the module's own repositories over Prisma; no business logic in route handlers or components.
+- [ ] Schema changes arrive as a Prisma migration authored by the `FOUNDATION` owner; destructive or data-moving migrations carry explicit human approval in the PR.
+- [ ] Money is integer math through `pricing.compute`; a pricing change updates its rounding property tests.
+- [ ] Every boundary input is validated with a zod schema (Server Action, route handler, webhook, env).
+- [ ] Persian text renders through `src/lib/fa.ts` helpers (Jalali dates, Persian digits, bidi safety) — no ad-hoc `toLocaleString`/`Intl` calls in components.
+- [ ] UI PRs attach the three-width screenshots and axe results for every touched screen (`visual_validation.md` §2.1); storefront pages stay within the JS budget (`NFR-PERF-1`).
+- [ ] Theme touching code keeps the rollover colour-only and honours `data-month` resolution (`ADR-007`); the twelve-set contrast test still passes.
+- [ ] No card data, no secret, no personal data in logs, fixtures or test snapshots (`NFR-SEC-1`, `NFR-PRIV-1`); the sandbox payment adapter is unreachable in production.
+- [ ] Outbox writes commit in the same transaction as the triggering change; a failing send never blocks or reverts the business change.
+- [ ] `python scripts/verify.py` passes locally and its output is pasted in the PR (install → typecheck → lint → format → unit/integration → e2e → audit).

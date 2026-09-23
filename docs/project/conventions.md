@@ -11,11 +11,13 @@
 
 | Concern | Rule |
 |---|---|
-| Layout | `src/<module-slug>/…` for source, `tests/<module-slug>/…` for tests (adjust to your stack and record it here) |
+| Layout | Next.js App Router: `src/app/(storefront|admin|api)/…` for routes; feature code in `src/<domain>/` (one module per domain, e.g. `src/catalog/`, `src/orders/`); tests mirror in `tests/<domain>/…` |
 | Module ownership | a module may only write paths granted in its contract (`owns`, `allowed_to_modify`) |
+| Module boundaries | each module exposes exactly one barrel `src/<domain>/public.ts`; **no deep imports** into another module (`eslint no-restricted-imports` enforces this; the rule is a shared zone owned by `FOUNDATION`) |
+| Server/client split | default to React Server Components; `"use client"` only for interaction islands (drawer, dialogs, qty steppers). A client component that fetches first-paint data is a review finding (`ADR-001`) |
 | Shared zones | only the owning module may edit them (`state/project.yaml → shared_zones`) |
-| Generated files | never hand-edit; regenerate and commit, or ignore |
-| File naming | (your stack's convention) |
+| Generated files | Prisma client is generated, never committed or hand-edited; regenerate with `npm run prisma:generate` |
+| File naming | components `kebab-case.tsx`, domain modules `src/<domain>/`, tests `*.test.ts` next to nothing — always under `tests/` |
 | Branching | `docs/workflows/git_workflow.md` |
 | Commit messages | `docs/workflows/git_workflow.md` — Conventional Commits with module scope + agent trailers |
 | PRs | `.github/pull_request_template.md`, fully filled in |
@@ -24,13 +26,16 @@
 
 | Concern | Rule |
 |---|---|
-| Formatter | (e.g. prettier / ruff format / gofmt / rustfmt) — *formatting is not a review topic* |
-| Linter | (e.g. eslint / ruff / golangci-lint) — warnings that fail CI are listed in `scripts/verify.config.yaml` |
-| Type checking | (e.g. tsc --noEmit / mypy --strict / go vet) |
-| Naming | (your stack's convention) |
-| Error handling | never swallow errors; log with context; user-facing errors are actionable and non-leaking |
-| Validation | validate at the boundary; never trust input from outside the boundary |
-| Logging | structured, no secrets, no personal data, correlation id per request |
+| Language | TypeScript **strict** everywhere; `any` is a review finding; boundary data is `unknown` until validated |
+| Formatter | Prettier (`.prettierrc` from `FOUNDATION`) — *formatting is not a review topic* |
+| Linter | ESLint (flat config `eslint.config.mjs`): `typescript-eslint` recommended + `no-restricted-imports` module rule; warnings that fail CI are listed in `scripts/verify.config.yaml` |
+| Type checking | `tsc --noEmit` on every PR (`verify.config.yaml`) |
+| Naming | files `kebab-case`; types/components `PascalCase`; functions/vars `camelCase`; DB columns `snake_case` (Prisma `@map`) |
+| Validation | zod schemas at every boundary (Server Action input, route handler, webhook, `.env` via a typed config module); never trust client data |
+| Money | integers only (Toman/Rial), never floats; rounding helpers live in `src/catalog/pricing.ts` — never inline `Math.round` on money |
+| Dates | store UTC `timestamptz`; format for humans via `src/lib/fa.ts` (Jalali display, Persian digits, bidi-safe mixing, `UX-G-009`); never `toLocaleString` ad hoc |
+| Error handling | never swallow errors; typed result unions for expected failures; unexpected failures logged with correlation id and re-thrown; user-facing errors are actionable Farsi (`UX-G-003`), never leaking internals |
+| Logging | structured JSON via the `SHELL` logger; no secrets, no personal data (`NFR-PRIV-1`); correlation id per request |
 | Comments | explain *why*; never restate the code |
 | Dead code | delete it; do not comment it out |
 | TODO policy | `TODO(<MODULE-ID>): <what> — <owner>` and referenced from `reports/`; no bare TODOs |
@@ -40,14 +45,19 @@
 
 | Concern | Rule |
 |---|---|
-| Test location | `tests/<module-slug>/…`, mirroring the source structure |
-| Test naming | describes behaviour: `rejects_expired_reset_token` |
-| Required per module | unit tests for each acceptance criterion + contract test for each provided interface |
-| Test data | factories/fixtures are owned by the module that defines the entity |
-| Isolation | no test may depend on another module's internal state; use the public contract |
+| Test location | `tests/<domain>/…`, mirroring `src/<domain>/` |
+| Runners | Vitest (unit + integration + contract), Playwright (e2e + visual evidence) — `ADR-010` |
+| Database in tests | real PostgreSQL from the `db-test` compose service; migrations applied, tables truncated per test — never mock the DB to fake success |
+| Test naming | describes behaviour: `rejects_expired_reset_token`, `advances_paid_to_shipped_only` |
+| Required per module | unit tests for each acceptance criterion + contract test for each provided interface (`architecture.md` §6.1) |
+| UI evidence | Playwright screenshots at 320/768/1280 for every screen a PR touches, attached to the PR (`docs/ux/visual_validation.md` §2.1); never committed to the repo |
+| A11y | axe scan on changed screens as part of the Playwright pass; `UX-AC-012.1` contrast/theme integrity is a Vitest unit test |
+| Payment | provider conformance suite runs against the sandbox adapter; the sandbox adapter must never be enabled in production (config guard + test) |
+| Test data | factories/fixtures owned by the module that defines the entity; e2e seed script in `tests/fixtures/`; **no production data in tests** (`NFR-PRIV-1`) |
+| Isolation | no test may depend on another module's internal state; use the public barrel/contract |
 | Flakiness | a flaky test is a bug: fix or quarantine with an issue, never retry in silence |
 | Coverage | used as a **signal**, never as a target; untested *requirements* are the real gap |
-| Running | `python scripts/verify.py` (or your stack's native command, recorded here) |
+| Running | `python scripts/verify.py` (wraps `npm run verify` sections — see `scripts/verify.config.yaml`) |
 
 ## 4. Dependency policy
 

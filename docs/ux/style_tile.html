@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-month="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مرور هویت بصری — نقره‌شاپ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#FFFFFF; --subtle:#F6F6F7; --surface:#FFFFFF;
+    --text:#17171A; --muted:#6E6E76;
+    --border:#E5E5E8; --border-strong:#C9C9CF;
+    /* accent = stone of the month, Gregorian calendar (DEC-050, DEC-053).
+       Defaults = ژانویه / گارنت (month 1), replaced by script. */
+    --accent:#7E2A2E; --accent-hover:#672226; --accent-subtle:#F2EAEA; --accent-stone:#8E3038;
+    --warning:#A15C00; --danger:#B3261E; --success:#0F6B4B;
+    --font:"Vazirmatn","IRANSansX","Estedad",Tahoma,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--canvas);color:var(--text);
+    font-family:var(--font);font-size:16px;line-height:1.8;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 24px 64px}
+  .note{
+    background:var(--accent-subtle);border-radius:10px;padding:12px 16px;
+    font-size:14px;line-height:1.7;color:var(--text);
+  }
+  h1{font-size:28px;line-height:1.35;font-weight:700;margin:24px 0 8px}
+  .sub{color:var(--muted);font-size:14px;margin:0}
+  section{margin-top:48px}
+  h2{font-size:20px;font-weight:600;margin:0 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+  h3{font-size:14px;font-weight:500;color:var(--muted);margin:16px 0 12px}
+  code{font-family:ui-monospace,Consolas,monospace;direction:ltr;display:inline-block}
+
+  /* brand */
+  .lockup{display:flex;align-items:center;gap:12px}
+  .wordmark{font-size:24px;font-weight:700}
+  .mark{color:var(--text)}
+  .mark.accent{color:var(--accent)}
+  .brand-row{display:flex;gap:32px;align-items:flex-end;flex-wrap:wrap}
+  .fav{width:32px;height:32px;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center}
+  .brand-note{font-size:12px;color:var(--muted);margin-top:8px}
+
+  /* palette */
+  .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+  .swatch{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)}
+  .swatch .chip{height:64px}
+  .swatch .meta{padding:8px 12px;font-size:12px;line-height:1.6}
+  .swatch .meta b{display:block;font-size:12px;font-weight:600}
+  .swatch .meta code{color:var(--muted)}
+
+  /* month strip */
+  .months{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:8px}
+  .month{
+    font:inherit;text-align:start;background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;padding:8px 10px;display:flex;gap:10px;align-items:center;cursor:pointer;
+  }
+  .month:hover{border-color:var(--border-strong)}
+  .month:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .month .dot{width:24px;height:24px;border-radius:6px;flex:0 0 auto;border:1px solid rgb(0 0 0 / 8%)}
+  .month .mmeta{font-size:12px;line-height:1.5}
+  .month .mmeta b{display:block;font-size:12px;font-weight:600}
+  .month .mmeta code{font-size:11px;color:var(--muted)}
+  .month[aria-pressed="true"]{border-color:currentColor;box-shadow:0 0 0 2px var(--accent-subtle)}
+  .month.is-current .dot{outline:2px solid var(--text);outline-offset:2px}
+  .strip-note{font-size:12px;color:var(--muted);margin:12px 0 0}
+
+  /* visitor's own birth month — OQ-015 option 2 prototype */
+  .birth-row{gap:10px;padding:14px;border:1px dashed var(--border-strong);border-radius:12px;margin-bottom:16px}
+  .birth-row label{font-size:14px;font-weight:500}
+  .select{
+    font:inherit;font-size:14px;color:var(--text);background:var(--surface);
+    border:1px solid var(--border-strong);border-radius:10px;padding:10px 12px;min-height:44px;max-width:320px;
+  }
+  .select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .btn-sm{font-size:13px;padding:6px 14px;min-height:36px;border-radius:8px}
+  .source-line{font-size:12px;color:var(--muted)}
+  .source-line b{color:var(--text);font-weight:600}
+
+  /* type */
+  .typerow{display:grid;grid-template-columns:160px 1fr;gap:16px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--border)}
+  .typerow .tok{font-size:12px;color:var(--muted);direction:ltr;text-align:left}
+  .t-display{font-size:36px;line-height:1.35;font-weight:700}
+  .t-title{font-size:24px;line-height:1.4;font-weight:600}
+  .t-section{font-size:20px;line-height:1.5;font-weight:600}
+  .t-body{font-size:16px;line-height:1.8}
+  .t-strong{font-size:16px;line-height:1.8;font-weight:600}
+  .t-label{font-size:14px;line-height:1.6;font-weight:500}
+  .t-caption{font-size:12px;line-height:1.6;color:var(--muted)}
+  .t-price{font-size:18px;line-height:1.5;font-weight:600}
+
+  /* cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+  .card{border:1px solid var(--border);border-radius:10px;padding:16px;background:var(--surface)}
+  .amount{font-size:18px;font-weight:600}
+  .basis{font-size:14px;line-height:1.7;font-weight:600;color:var(--text)}
+  .based{font-size:12px;color:var(--muted)}
+  .based.stale{color:var(--warning)}
+  .blocked{font-size:13px;line-height:1.7;color:var(--muted)}
+  .totals{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--border);padding-top:12px;margin-top:12px}
+
+  /* components */
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  .btn{font:inherit;font-size:14px;font-weight:500;border-radius:10px;padding:10px 18px;border:1px solid transparent;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:inherit}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:var(--accent-hover)}
+  .btn-secondary{background:transparent;border-color:var(--border-strong);color:var(--text)}
+  .btn-ghost{background:transparent;color:var(--text)}
+  .btn-danger{background:transparent;border-color:var(--danger);color:var(--danger)}
+  .btn[disabled]{background:var(--subtle);color:var(--muted);border-color:var(--border);cursor:not-allowed}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;margin-inline-end:8px;vertical-align:-2px;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.spinner{animation:none}}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;border-radius:999px;padding:4px 12px;border:1px solid var(--border)}
+  .badge.ok{background:var(--accent-subtle);border-color:var(--accent-subtle);color:var(--accent)}
+  .badge.no{background:var(--subtle);color:var(--muted)}
+  .field{max-width:320px}
+  .field label{display:block;font-size:14px;font-weight:500;margin-bottom:6px}
+  .field input{font:inherit;font-size:14px;width:100%;border:1px solid var(--border-strong);border-radius:6px;padding:10px 12px;direction:ltr;text-align:left}
+  .field .help{font-size:12px;color:var(--muted);margin-top:6px}
+  .field.err input{border-color:var(--danger)}
+  .field.err .help{color:var(--danger)}
+  .ratechip,.stonechip{display:inline-flex;gap:8px;align-items:center;font-size:12px;color:var(--text);border:1px solid var(--border);border-radius:999px;padding:6px 14px}
+  .stonechip .orb{width:12px;height:12px;border-radius:50%;background:var(--accent-stone);border:1px solid rgb(0 0 0 / 10%)}
+  .trust{display:flex;gap:24px;flex-wrap:wrap;font-size:14px;color:var(--text)}
+  .trust span{display:inline-flex;align-items:center;gap:8px}
+  .timeline{display:flex;align-items:center;gap:0;margin-top:8px}
+  .step{display:flex;align-items:center;gap:8px;font-size:13px}
+  .dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--border-strong);background:var(--surface)}
+  .step.done .dot{background:var(--accent);border-color:var(--accent)}
+  .link{border-top:1px solid var(--border);margin:0 12px;width:56px}
+
+  /* the twelve month stones (SCR-001, DEC-052) */
+  .explore{margin-top:16px;border:1px solid var(--border);border-radius:16px;padding:20px;background:var(--surface)}
+  .explore-head{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+  .explore-head h3{margin:0;font-size:16px;font-weight:600;color:var(--text)}
+  .stones{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:12px}
+  .stone-card{
+    font:inherit;text-align:start;background:var(--canvas);border:1px solid var(--border);
+    border-radius:12px;padding:12px 14px;cursor:pointer;display:block;width:100%;
+  }
+  .stone-card:hover{border-color:var(--border-strong)}
+  .stone-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .stone-card[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-subtle)}
+  .stone-card.is-current{border-color:var(--text);background:var(--subtle)}
+  .sc-top{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px}
+  .sc-swatch{width:22px;height:22px;border-radius:6px;flex:0 0 auto;margin-top:4px;border:1px solid rgb(0 0 0 / 10%)}
+  .sc-name{font-size:14px;font-weight:600;line-height:1.6}
+  .sc-name .greg{font-size:12px;font-weight:400;color:var(--muted)}
+  .sc-name small{display:block;font-size:11px;font-weight:400;color:var(--muted);direction:ltr;text-align:start}
+  .sc-marks{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}
+  .sc-mark{font-size:11px;font-weight:500;border-radius:999px;padding:2px 10px;border:1px solid var(--border);color:var(--muted)}
+  .sc-mark.now{background:var(--accent-subtle);border-color:var(--accent-subtle);color:var(--accent)}
+
+  footer{margin-top:64px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:16px;line-height:1.8}
+</style>
+
+<script>
+  /* ── The pre-paint half (OQ-015 option 2 prototype) ───────────────────────────────────────────
+     Tokens live here, and the accent is applied from this script in <head> — before the body
+     exists and therefore before the first paint, so a visitor's stored birth month can never
+     cause a colour flash (a colour-only inline style on <html>, no layout work).
+     Precedence: ?month= (review pin) → stored birth month → the Gregorian calendar month
+     (DEC-050, DEC-053). Without JS, or with storage unavailable/cleared, the :root fallback and
+     the server-rendered calendar month take over — i.e. the visitor simply gets today's stone. */
+  var STONE_MONTHS = [
+    {n:1,  month:"ژانویه",  monthEn:"January",   stone:"گارنت",              stoneEn:"garnet",    accent:"#7E2A2E", hover:"#672226", subtle:"#F2EAEA", swatch:"#8E3038", ratio:"9.3"},
+    {n:2,  month:"فوریه",   monthEn:"February",  stone:"آمیتیست",            stoneEn:"amethyst",  accent:"#5B3E9E", hover:"#4B3382", subtle:"#EFECF5", swatch:"#9C7FD8", ratio:"8.0"},
+    {n:3,  month:"مارس",    monthEn:"March",     stone:"آکوامارین",          stoneEn:"aquamarine", accent:"#16688C", hover:"#125573", subtle:"#E8F0F4", swatch:"#83C8DE", ratio:"6.2"},
+    {n:4,  month:"آوریل",   monthEn:"April",     stone:"الماس",              stoneEn:"diamond",    accent:"#33475B", hover:"#2A3A4B", subtle:"#EBEDEF", swatch:"#E9EEF3", ratio:"9.6"},
+    {n:5,  month:"مه",      monthEn:"May",       stone:"زمرد",               stoneEn:"emerald",    accent:"#0D6B4F", hover:"#0B5841", subtle:"#E7F0ED", swatch:"#2E9E76", ratio:"6.5"},
+    {n:6,  month:"ژوئن",    monthEn:"June",      stone:"مروارید و ماه‌سنگ", stoneEn:"pearl & moonstone", accent:"#2F5D86", hover:"#274C6E", subtle:"#EAEFF3", swatch:"#DDE8F1", ratio:"6.9"},
+    {n:7,  month:"ژوئیه",   monthEn:"July",      stone:"یاقوت سرخ",          stoneEn:"ruby",       accent:"#9B1C31", hover:"#7F1728", subtle:"#F5E8EA", swatch:"#C32F45", ratio:"8.1"},
+    {n:8,  month:"اوت",     monthEn:"August",    stone:"زبرجد",              stoneEn:"peridot",    accent:"#5E6B12", hover:"#4D580F", subtle:"#EFF0E7", swatch:"#A8B63C", ratio:"5.9"},
+    {n:9,  month:"سپتامبر", monthEn:"September", stone:"یاقوت کبود",         stoneEn:"sapphire",   accent:"#1B4A8A", hover:"#163D71", subtle:"#E8EDF3", swatch:"#2C5FB3", ratio:"8.8"},
+    {n:10, month:"اکتبر",   monthEn:"October",   stone:"اوپال",              stoneEn:"opal",       accent:"#7A3E82", hover:"#64336B", subtle:"#F2ECF3", swatch:"#C9A6CE", ratio:"7.4"},
+    {n:11, month:"نوامبر",  monthEn:"November",  stone:"توپاز",              stoneEn:"topaz",      accent:"#7A4E00", hover:"#644000", subtle:"#F2EDE6", swatch:"#DFA83C", ratio:"7.2"},
+    {n:12, month:"دسامبر",  monthEn:"December",  stone:"فیروزه",             stoneEn:"turquoise",  accent:"#0E6874", hover:"#0B555F", subtle:"#E7F0F1", swatch:"#45B6C2", ratio:"6.5"}
+  ];
+
+  var BIRTH_KEY = "noghre.birthMonth";   // visitor preference; localStorage only, never sent anywhere
+
+  function faDigits(value){ return String(value).replace(/[0-9]/g, function(d){ return "۰۱۲۳۴۵۶۷۸۹"[d]; }); }
+  function faToInt(s){
+    return parseInt(String(s).replace(/[۰-۹]/g, function(d){ return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); }), 10);
+  }
+  function readPin(){
+    var raw = new URLSearchParams(location.search).get("month");
+    if (raw === null) return null;
+    var n = faToInt(raw);
+    return (n >= 1 && n <= 12) ? n : null;
+  }
+  function readBirth(){
+    try {
+      var n = parseInt(window.localStorage.getItem(BIRTH_KEY), 10);
+      return (n >= 1 && n <= 12) ? n : null;
+    } catch (e) { return null; }   // private mode / storage disabled → just use the calendar
+  }
+  function writeBirth(n){
+    try { window.localStorage.setItem(BIRTH_KEY, String(n)); return true; }
+    catch (e) { return false; }
+  }
+  function clearBirth(){ try { window.localStorage.removeItem(BIRTH_KEY); } catch (e) {} }
+  // Gregorian month today (Asia/Tehran) — the shop's calendar for the theme (DEC-053).
+  function calendarMonth(){
+    try {
+      var n = parseInt(new Intl.DateTimeFormat("en-US", {month:"numeric", timeZone:"Asia/Tehran"}).format(new Date()), 10);
+      if (n >= 1 && n <= 12) return n;
+    } catch (e) { /* fall through */ }
+    return 1;
+  }
+
+  var CALENDAR = calendarMonth();
+  var RESOLVED = (function(){
+    var pin = readPin();
+    if (pin) return {n: pin, source: "pin"};
+    var birth = readBirth();
+    if (birth) return {n: birth, source: "birth"};
+    return {n: CALENDAR, source: "calendar"};
+  })();
+
+  (function applyTokens(){
+    var d = STONE_MONTHS[RESOLVED.n - 1];
+    var root = document.documentElement;
+    root.style.setProperty("--accent", d.accent);
+    root.style.setProperty("--accent-hover", d.hover);
+    root.style.setProperty("--accent-subtle", d.subtle);
+    root.style.setProperty("--accent-stone", d.swatch);
+    root.setAttribute("data-month", String(d.n));
+    root.setAttribute("data-month-source", RESOLVED.source);
+  })();
+</script>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="note">این صفحه یک <b>مرور هویت بصری</b> است — از <code>design_system.md</code> ساخته شده تا پیش از تأیید، رنگ‌ها، تایپ و طرح ماه را ببینید. لهجهٔ رنگ این نسخه <b>سنگ ماه تولد</b> روی <b>تقویم میلادی</b> است (`DEC-050`, `DEC-053`): روی هر ماه بزنید تا لهجهٔ همان سنگ را ببینید؛ هر دوازده گزینه با متن سفید حداقل ‎۴٫۵:۱‎ کنتراست دارند. فونت نمایش‌داده‌شده Vazirmatn است (گزینهٔ کاری؛ انتخاب نهایی فونت باز است — OQ-013). بخش ۶ <b>سنگ ماه دوازده ماه سال</b> است: سنگ ماه جاری برجسته، بقیه برای پیش‌نمایش لهجه قابل انتخاب (`DEC-052`).</p>
+
+  <h1>هویت بصری نقره‌شاپ</h1>
+  <p class="sub">نسخهٔ ۳ · مینیمال مدرن · سطوح روشن، متن تیره، <b>یک لهجهٔ ماهانه</b> برابر سنگ ماه تولد (تقویم میلادی)</p>
+
+  <section>
+    <h2>۱) نشان برند</h2>
+    <div class="brand-row">
+      <div>
+        <div class="lockup"><svg class="mark" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 6 H21 L17.5 12 H5.5 Z"/><circle cx="10.5" cy="17" r="3"/></svg><span class="wordmark">نقره‌شاپ</span></div>
+        <p class="brand-note">قفل افقی — نگاره در ابتدای خواندن + نام‌نشان</p>
+      </div>
+      <div>
+        <div class="lockup"><svg class="mark accent" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 6 H21 L17.5 12 H5.5 Z"/><circle cx="10.5" cy="17" r="3"/></svg></div>
+        <p class="brand-note">نگاره تنها — اندازهٔ حداقل ۲۴px؛ لهجهٔ ماه</p>
+      </div>
+      <div>
+        <div class="fav"><svg class="mark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M9 6 H21 L17.5 12 H5.5 Z"/><circle cx="10.5" cy="17" r="3"/></svg></div>
+        <p class="brand-note">فاوآیکون ۳۲px</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>۲) رنگ‌های پایه</h2>
+    <div class="swatches">
+      <div class="swatch"><div class="chip" style="background:var(--canvas);border-bottom:1px solid var(--border)"></div><div class="meta"><b>پس‌زمینهٔ صفحه</b><code>#FFFFFF</code></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--subtle)"></div><div class="meta"><b>پس‌زمینهٔ متناوب / پنل</b><code>#F6F6F7</code></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--text)"></div><div class="meta"><b>متن اصلی</b><code>#17171A</code></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--muted)"></div><div class="meta"><b>متن ثانویه / تاریخ نرخ</b><code>#6E6E76</code></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--border)"></div><div class="meta"><b>جداکننده</b><code>#E5E5E8</code></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--border-strong)"></div><div class="meta"><b>حاشیهٔ کنترل</b><code>#C9C9CF</code></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--success)"></div><div class="meta"><b>موفقیت — ثابت</b><code>#0F6B4B</code> جدا از لهجهٔ ماه</div></div>
+      <div class="swatch"><div class="chip" style="background:var(--warning)"></div><div class="meta"><b>هشدار / نرخ کهنه</b><code>#A15C00</code></div></div>
+      <div class="swatch"><div class="chip" style="background:var(--danger)"></div><div class="meta"><b>خطا / اقدام خطرناک</b><code>#B3261E</code></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>۳) لهجهٔ ماه — سنگ ماه تولد (`DEC-050`، تقویم `DEC-053`)</h2>
+    <div class="row">
+      <button class="btn btn-primary" type="button">افزودن به سبد خرید</button>
+      <span class="badge ok">موجود</span>
+      <span class="stonechip"><span class="orb" aria-hidden="true"></span><span id="chipText">سنگ این ماه</span></span>
+    </div>
+    <div class="row birth-row">
+      <label for="birthMonth">ماه تولد شما (اختیاری)</label>
+      <select class="select" id="birthMonth"></select>
+      <button class="btn btn-secondary btn-sm" type="button" id="birthClear">پاک‌کردن</button>
+      <span class="source-line" id="sourceNote"></span>
+    </div>
+    <div class="months" id="months"></div>
+    <p class="strip-note" id="stripNote">با زدن روی هر ماه میلادی، لهجهٔ آن سنگ روی کل این صفحه اعمال می‌شود (پیش‌نمایش؛ در فروشگاه خودکار از تقویم میلادی خوانده می‌شود و اول هر ماه عوض می‌شود). برای پایدارکردن پیش‌نمایش، پارامتر <code>?month=</code> را به نشانی اضافه کنید (مثلاً <code>?month=3</code>).</p>
+    <p class="strip-note">«ماه تولد شما» فقط در همین مرورگر ذخیره می‌شود (<code>localStorage</code>) و هیچ‌جا فرستاده نمی‌شود؛ رنگ <b>پیش از اولین نمایش</b> تنظیم می‌شود تا پرش رنگ نداشته باشیم، و متن‌ها بعد از آن به‌روز می‌شوند. بدون جاوااسکریپت یا با حافظهٔ پاک‌شده، همان سنگ ماه جاری نشان داده می‌شود. ترتیب اولویت: پارامتر <code>?month=</code> → ماه تولد شما → ماه جاری.</p>
+    <noscript><p class="strip-note">برای دیدن فهرست دوازده سنگ و انتخاب ماه تولد، جاوااسکریپت را روشن کنید؛ مقادیر مرجع در <code>design_system.md</code> §۲.۱ ثبت شده‌اند و بدون جاوااسکریپت، لهجهٔ ماه جاری نمایش داده می‌شود.</p></noscript>
+  </section>
+
+  <section>
+    <h2>۴) تایپ</h2>
+    <div class="typerow"><span class="tok">text.display · 36/1.35 · 700</span><span class="t-display">نقرهٔ خالص، ساده و ماندگار</span></div>
+    <div class="typerow"><span class="tok">text.title · 24/1.4 · 600</span><span class="t-title">محصولات</span></div>
+    <div class="typerow"><span class="tok">text.section · 20/1.5 · 600</span><span class="t-section">دسته‌ها</span></div>
+    <div class="typerow"><span class="tok">text.body · 16/1.8 · 400</span><span class="t-body">هر قطعه با ترازوی دیجیتال وزن شده و قیمت آن بر پایهٔ نرخ روز نقره محاسبه می‌شود؛ تاریخ نرخ همیشه کنار قیمت می‌آید.</span></div>
+    <div class="typerow"><span class="tok">text.body-strong · 600</span><span class="t-strong">وزن ۴٫۲ گرم × نرخ ۹۸۲٬۰۰۰ تومان/گرم + اجرت ۲۵۰٬۰۰۰ تومان</span></div>
+    <div class="typerow"><span class="tok">text.label · 14/1.6 · 500</span><span class="t-label">شماره موبایل</span></div>
+    <div class="typerow"><span class="tok">text.caption · 12/1.6</span><span class="t-caption">نرخ: ۲۰ شهریور</span></div>
+    <div class="typerow"><span class="tok">text.price · 18/1.5 · 600</span><span class="t-price">۴٬۳۷۴٬۴۰۰ تومان</span></div>
+  </section>
+
+  <section>
+    <h2>۵) نمایش قیمت (PriceLine)</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>کامل — صفحهٔ محصول</h3>
+        <div class="amount">۴٬۳۷۴٬۴۰۰ تومان</div>
+        <div class="basis">وزن ۴٫۲ گرم × نرخ ۹۸۲٬۰۰۰ تومان/گرم + اجرت ۲۵۰٬۰۰۰ تومان</div>
+        <div class="based">نرخ: ۲۰ شهریور</div>
+      </div>
+      <div class="card">
+        <h3>فشرده — کارت محصول</h3>
+        <div class="amount" style="font-size:16px">۴٬۳۷۴٬۴۰۰ تومان</div>
+        <div class="based">نرخ: ۲۰ شهریور</div>
+      </div>
+      <div class="card">
+        <h3>جمع — سبد و پرداخت</h3>
+        <div class="totals"><span>مبلغ نهایی</span><span class="amount">۴٬۳۷۴٬۴۰۰ تومان</span></div>
+        <div class="based">بر پایهٔ نرخ ۲۰ شهریور — هنگام پرداخت نهایی می‌شود</div>
+      </div>
+    </div>
+    <div class="cards" style="margin-top:16px">
+      <div class="card">
+        <h3>حالت: نرخ کهنه</h3>
+        <div class="amount">۴٬۳۷۴٬۴۰۰ تومان</div>
+        <div class="based stale">نرخ: ۱۸ شهریور (آخرین نرخ ثبت‌شده)</div>
+      </div>
+      <div class="card">
+        <h3>حالت: بدون نرخ</h3>
+        <div class="blocked">قیمت‌گذاری در انتظار ثبت نرخ روز است؛ به‌زودی می‌توانید این قطعه را بخرید.</div>
+        <div style="margin-top:12px"><button class="btn btn-primary" disabled>افزودن به سبد خرید</button></div>
+      </div>
+      <div class="card">
+        <h3>حالت: موجودی</h3>
+        <div class="amount">۴٬۳۷۴٬۴۰۰ تومان</div>
+        <div style="margin-top:8px"><span class="badge no">ناموجود</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>۶) سنگ ماه — دوازده ماه میلادی (`DEC-050`, `DEC-052`, `DEC-053`)</h2>
+    <div class="explore" id="explore">
+      <div class="explore-head">
+        <h3>سنگ ماه</h3>
+        <span class="t-caption">سنگ ماه تولد هر ماه میلادی؛ سنگ ماه جاری برجسته است.</span>
+      </div>
+      <div class="stones" id="stones"></div>
+      <p class="strip-note">سنگ ماه جاری با کادر پررنگ و برچسب «این ماه» برجسته است — این برچسب همیشه روی ماه <b>تقویمی</b> می‌ماند، حتی وقتی ماه تولد شما انتخاب شده باشد. روی هر ماه میلادی بزنید تا لهجهٔ همان سنگ روی این صفحه اعمال شود (پیش‌نمایش؛ متن مرجع در <code>design_system.md</code> §۲.۲).</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>۷) اجزای نمونه</h2>
+    <h3>دکمه‌ها</h3>
+    <div class="row">
+      <button class="btn btn-primary">افزودن به سبد خرید</button>
+      <button class="btn btn-secondary">ادامه خرید</button>
+      <button class="btn btn-ghost">بعداً</button>
+      <button class="btn btn-danger">حذف کد</button>
+      <button class="btn btn-primary" disabled>ناموجود</button>
+      <button class="btn btn-primary"><span class="spinner"></span>در حال ثبت…</button>
+    </div>
+    <h3>نشان‌ها و وضعیت سفارش</h3>
+    <div class="row">
+      <span class="badge ok">موجود</span>
+      <span class="badge no">ناموجود</span>
+      <span class="badge ok">پرداخت‌شده</span>
+      <span class="badge">ارسال‌شده</span>
+      <span class="badge">تحویل‌شده</span>
+    </div>
+    <h3>فیلترها (شامل «ماه‌سنگ» — `DEC-051`)</h3>
+    <div class="row">
+      <span class="badge ok">همه</span>
+      <span class="badge">ماه‌سنگ</span>
+      <span class="badge">با سنگ</span>
+      <span class="badge">بدون سنگ</span>
+    </div>
+    <h3>فیلد ورودی</h3>
+    <div class="row">
+      <div class="field">
+        <label for="mobile">شماره موبایل</label>
+        <input id="mobile" dir="ltr" inputmode="numeric" value="۰۹۱۲۳۴۵۶۷۸۹">
+        <p class="help">فقط برای هماهنگی سفارش استفاده می‌شود.</p>
+      </div>
+      <div class="field err">
+        <label for="mobile2">شماره موبایل</label>
+        <input id="mobile2" dir="ltr" inputmode="numeric" value="۰۹۱۲">
+        <p class="help">شماره موبایل را کامل وارد کنید.</p>
+      </div>
+    </div>
+    <h3>نرخ روز، سنگ ماه و ردیف اعتماد</h3>
+    <div class="row">
+      <span class="ratechip">نرخ نقره: ۹۸۲٬۰۰۰ تومان/گرم · ۲۰ شهریور</span>
+      <span class="stonechip"><span class="orb" aria-hidden="true"></span><span class="chipText">سنگ این ماه: مروارید و ماه‌سنگ — خرداد</span></span>
+    </div>
+    <div class="trust">
+      <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 7h12v10H2zM14 10h4l3 3v4h-7z"/></svg>ارسال به سراسر کشور</span>
+      <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h13l-3-3M4 12l3 3"/><path d="M20 6v12H8"/></svg>ضمانت بازگشت</span>
+      <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="10" width="14" height="9" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>پرداخت امن آنلاین</span>
+    </div>
+    <h3>خط زمانی سفارش</h3>
+    <div class="timeline">
+      <span class="step done"><span class="dot"></span>پرداخت‌شده</span>
+      <span class="link"></span>
+      <span class="step"><span class="dot"></span>ارسال‌شده</span>
+      <span class="link"></span>
+      <span class="step"><span class="dot"></span>تحویل‌شده</span>
+    </div>
+  </section>
+
+  <footer>
+    این صفحه فقط برای مرور هویت بصری پیش از تأیید است؛ مقادیر مرجع در <code>docs/ux/design_system.md</code> ثبت شده‌اند.
+    لهجهٔ رنگ از جدول سنگ ماه تولد میلادی می‌آید و در فروشگاه اول هر ماه خودکار عوض می‌شود؛ پیش‌فرضِ بی‌ماه همان مجموعهٔ ژانویه (گارنت) است.
+    فونت فعلی Vazirmatn است و انتخاب نهایی فونت پس از تست شما (OQ-013) در همان فایل به‌روز می‌شود.
+  </footer>
+</div>
+
+<script>
+  // The tokens and the pre-paint accent live in the <head> script (see above); this half only
+  // builds the review UI and keeps the labels in sync — nothing here decides the colour.
+  var MONTHS = STONE_MONTHS;
+  var root = document.documentElement;
+  var chipTexts = [document.getElementById("chipText")].concat([].slice.call(document.querySelectorAll(".chipText")));
+  var sourceNote = document.getElementById("sourceNote");
+  var SOURCE_LABEL = {
+    calendar: "ماه جاری (تقویم میلادی)",
+    birth: "ماه تولد شما — ذخیره‌شده در همین مرورگر",
+    pin: "پارامتر <code dir=\"ltr\">?month=</code> در نشانی",
+    preview: "انتخاب‌شده در همین صفحه (ذخیره نمی‌شود)"
+  };
+
+  function applyMonth(n, source){
+    var d = MONTHS[n - 1];
+    root.style.setProperty("--accent", d.accent);
+    root.style.setProperty("--accent-hover", d.hover);
+    root.style.setProperty("--accent-subtle", d.subtle);
+    root.style.setProperty("--accent-stone", d.swatch);
+    root.setAttribute("data-month", String(d.n));
+    root.setAttribute("data-month-source", source);
+    var prefix = source === "birth" ? "سنگ ماه تولد شما: " : (source === "calendar" ? "سنگ این ماه: " : "پیش‌نمایش: ");
+    chipTexts.forEach(function(el){
+      if (el) el.textContent = prefix + d.stone + " — " + d.month;
+    });
+    if (sourceNote) {
+      sourceNote.innerHTML = "لهجهٔ فعال از: <b>" + (SOURCE_LABEL[source] || source) + "</b> — " + d.month + " · " + d.stone;
+    }
+    [].forEach.call(document.querySelectorAll(".month, .stone-card"), function(btn){
+      btn.setAttribute("aria-pressed", btn.getAttribute("data-month") === String(d.n) ? "true" : "false");
+    });
+  }
+
+  var strip = document.getElementById("months");
+  var today = CALENDAR;   // the «این ماه» marker always follows the calendar, never the preference
+  MONTHS.forEach(function(d){
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "month" + (d.n === today ? " is-current" : "");
+    btn.setAttribute("data-month", String(d.n));
+    btn.setAttribute("aria-pressed", "false");
+    btn.title = d.month + " (" + d.monthEn + ") — " + d.stone + " (" + d.stoneEn + ") · accent " + d.accent + " · " + d.ratio + ":1 روی سفید";
+    btn.innerHTML = '<span class="dot" style="background:' + d.swatch + '" aria-hidden="true"></span>' +
+      '<span class="mmeta"><b>' + faDigits(d.n) + ' · ' + d.month + ' — ' + d.stone + '</b>' +
+      '<code>' + d.monthEn + ' · ' + d.accent + ' · ' + faDigits(d.ratio) + ':۱</code></span>';
+    btn.addEventListener("click", function(){ applyMonth(d.n, "preview"); });
+    strip.appendChild(btn);
+  });
+  applyMonth(today);
+
+  // Twelve month stones (`DEC-052`): the current month is highlighted, the other eleven preview
+  // their own accent on click (this page is the review build; it only previews the theme).
+  var stonesHost = document.getElementById("stones");
+  MONTHS.forEach(function(d){
+    var card = document.createElement("button");
+    card.type = "button";
+    card.className = "stone-card" + (d.n === today ? " is-current" : "");
+    card.setAttribute("data-month", String(d.n));
+    card.setAttribute("aria-pressed", "false");
+    card.title = d.month + " (" + d.monthEn + ") — " + d.stone + " (" + d.stoneEn + ") · accent " + d.accent + " · " + d.ratio + ":1 روی سفید";
+    card.innerHTML =
+      '<span class="sc-top"><span class="sc-swatch" style="background:' + d.swatch + '" aria-hidden="true"></span>' +
+        '<span class="sc-name">' + d.month + ' <span class="greg">' + d.monthEn + '</span>' +
+        '<small>' + d.stone + ' · ' + d.stoneEn + '</small></span></span>' +
+      (d.n === today ? '<span class="sc-marks"><span class="sc-mark now">این ماه</span></span>' : '');
+    card.addEventListener("click", function(){ applyMonth(d.n, "preview"); });
+    stonesHost.appendChild(card);
+  });
+
+  // Visitor's own birth month (OQ-015 option 2 prototype): stored locally, never sent anywhere.
+  var birthSelect = document.getElementById("birthMonth");
+  var birthClear = document.getElementById("birthClear");
+  function resetToCalendar(){
+    clearBirth();
+    if (birthSelect) birthSelect.value = "";
+    applyMonth(CALENDAR, "calendar");
+  }
+  if (birthSelect) {
+    var blank = document.createElement("option");
+    blank.value = "";
+    blank.textContent = "— انتخاب نشده —";
+    birthSelect.appendChild(blank);
+    MONTHS.forEach(function(d){
+      var opt = document.createElement("option");
+      opt.value = String(d.n);
+      opt.textContent = faDigits(d.n) + " · " + d.month + " · " + d.monthEn + " — " + d.stone;
+      birthSelect.appendChild(opt);
+    });
+    birthSelect.value = RESOLVED.source === "birth" ? String(RESOLVED.n) : "";
+    birthSelect.addEventListener("change", function(){
+      var n = parseInt(birthSelect.value, 10);
+      if (!n) { resetToCalendar(); return; }
+      var saved = writeBirth(n);
+      applyMonth(n, "birth");
+      if (!saved && sourceNote) {
+        // storage blocked (private mode): the accent still works, it just will not survive a reload
+        sourceNote.innerHTML += " · مرورگر اجازهٔ ذخیره نداد؛ انتخاب فقط تا پایان همین بازدید می‌ماند.";
+      }
+    });
+  }
+  if (birthClear) birthClear.addEventListener("click", resetToCalendar);
+  applyMonth(RESOLVED.n, RESOLVED.source);
+
+  document.getElementById("stripNote").insertAdjacentHTML("beforeend",
+    "<br>ماه جاری: " + MONTHS[CALENDAR - 1].month + " — " + MONTHS[CALENDAR - 1].stone +
+    " · لهجهٔ <code dir=\"ltr\">" + MONTHS[CALENDAR - 1].accent + "</code>" +
+    (RESOLVED.source === "birth" ? " · ماه انتخابی شما: " + MONTHS[RESOLVED.n - 1].month : ""));
+</script>
+</body>
+</html>
