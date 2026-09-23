@@ -34,7 +34,7 @@ jobs:
     name: state, contracts and docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -49,7 +49,7 @@ jobs:
     name: typecheck, lint and tests (opt-in)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ vars.SECURITY_CHECKS == 'true' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v5
